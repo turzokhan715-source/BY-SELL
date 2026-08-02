@@ -12,9 +12,11 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 function loadData() {
     if (!fs.existsSync(DATA_FILE)) {
-        return { users: [], submissions: [] };
+        return { users: [], submissions: [], withdrawals: [] };
     }
-    return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (!data.withdrawals) data.withdrawals = [];
+    return data;
 }
 
 function saveData(data) {
@@ -37,21 +39,22 @@ app.get('/', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Premium User Panel - ID Submission</title>
+            <title>Premium User Panel - ID & Payment Portal</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 * { box-sizing: border-box; }
                 body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
                 
-                .card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 520px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+                .card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 540px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
                 .icon-box { width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 16px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); }
                 
                 h2 { text-align: center; color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 24px; }
                 p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
                 label { display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
                 
-                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(15, 23, 42, 0.6); color: #fff; outline: none; transition: all 0.3s ease; font-family: inherit; }
-                input:focus, textarea:focus { border-color: #6366f1; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
+                input, textarea, select { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(15, 23, 42, 0.6); color: #fff; outline: none; transition: all 0.3s ease; font-family: inherit; }
+                input:focus, textarea:focus, select:focus { border-color: #6366f1; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
+                select option { background: #0f172a; color: #fff; }
                 
                 .btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); font-family: inherit; }
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.6); }
@@ -62,7 +65,17 @@ app.get('/', (req, res) => {
                 
                 .dashboard-container { max-width: 950px !important; padding: 35px !important; }
                 
-                /* Premium Category Cards Style */
+                /* Top Header Balance Bar */
+                .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
+                .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
+                .balance-amount { font-size: 20px; font-weight: 800; color: #4ade80; }
+
+                /* Nav Tabs inside Dashboard */
+                .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+                .nav-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
+                .nav-tab-btn.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
+
+                /* Category Cards */
                 .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-top: 25px; }
                 .cat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
                 .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
@@ -78,7 +91,6 @@ app.get('/', (req, res) => {
                 th, td { border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
                 th { background: rgba(15, 23, 42, 0.8); color: #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 700; }
                 td { color: #e2e8f0; }
-                tr:hover td { background: rgba(255, 255, 255, 0.02); }
                 
                 .sheet-details { max-width: 320px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0, 0, 0, 0.3); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); color: #38bdf8; }
                 .sheet-details::-webkit-scrollbar { height: 6px; }
@@ -150,50 +162,102 @@ app.get('/', (req, res) => {
 
             <!-- User Dashboard -->
             <div class="card dashboard-container hidden" id="dashboard-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px;">
+                <div class="top-bar">
                     <div>
                         <h2 style="text-align: left; margin: 0; font-size: 22px;">Welcome, <span id="user-display-name" style="color: #818cf8;"></span></h2>
                         <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #38bdf8;"></span></p>
                     </div>
-                </div>
-
-                <div id="category-selection-view">
-                    <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
-                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
-                    
-                    <div class="category-grid">
-                        ${CATEGORIES.map(cat => `
-                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}')">
-                                <span class="cat-icon">${cat.icon}</span>
-                                <div class="cat-title">${cat.name}</div>
-                            </div>
-                        `).join('')}
+                    <div class="balance-badge">
+                        <span>💰 Balance:</span>
+                        <span class="balance-amount" id="user-balance-display">৳0.00</span>
                     </div>
                 </div>
 
-                <!-- Specific Category Form & History -->
-                <div id="category-form-view" class="hidden">
-                    <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
-                    <h3 id="active-category-title" style="color: #818cf8; margin-bottom: 15px; font-size: 20px;"></h3>
-                    
-                    <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
-                        <label>Submit Details / Cookies</label>
-                        <textarea id="id-details" rows="3" placeholder="Paste details or cookies here..."></textarea>
-                        <button class="btn" onclick="submitId()" style="width: 180px;">Submit Now</button>
+                <!-- Navigation Tabs inside Dashboard -->
+                <div class="user-nav-tabs">
+                    <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
+                    <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
+                </div>
+
+                <!-- Submit ID Section -->
+                <div id="user-section-submit">
+                    <div id="category-selection-view">
+                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
+                        
+                        <div class="category-grid">
+                            ${CATEGORIES.map(cat => `
+                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}')">
+                                    <span class="cat-icon">${cat.icon}</span>
+                                    <div class="cat-title">${cat.name}</div>
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
 
-                    <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Submissions History</h4>
+                    <!-- Specific Category Form & History -->
+                    <div id="category-form-view" class="hidden">
+                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
+                        <h3 id="active-category-title" style="color: #818cf8; margin-bottom: 15px; font-size: 20px;"></h3>
+                        
+                        <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
+                            <label>Submit Details / Cookies</label>
+                            <textarea id="id-details" rows="3" placeholder="Paste details or cookies here..."></textarea>
+                            <button class="btn" onclick="submitId()" style="width: 180px;">Submit Now</button>
+                        </div>
+
+                        <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Submissions History</h4>
+                        <div class="sheet-scroll-box">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Details</th>
+                                        <th style="text-align: center;">Status</th>
+                                        <th style="text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="user-subs-table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdraw / Payment Section -->
+                <div id="user-section-withdraw" class="hidden">
+                    <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Withdraw Request / Payment</h3>
+                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
+
+                    <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); max-width: 500px;">
+                        <label>Select Payment Method</label>
+                        <select id="withdraw-method">
+                            <option value="Bkash">Bkash</option>
+                            <option value="Nagad">Nagad</option>
+                            <option value="Rocket">Rocket</option>
+                        </select>
+
+                        <label>Phone Number</label>
+                        <input type="text" id="withdraw-phone" placeholder="017xxxxxxxx">
+
+                        <label>Amount (BDT)</label>
+                        <input type="number" id="withdraw-amount" placeholder="0.00">
+
+                        <button class="btn" onclick="sendWithdrawRequest()">Send Request</button>
+                    </div>
+
+                    <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Withdrawal History</h4>
                     <div class="sheet-scroll-box">
                         <table>
                             <thead>
                                 <tr>
                                     <th>Date & Time</th>
-                                    <th>Details</th>
+                                    <th>Method</th>
+                                    <th>Phone</th>
+                                    <th>Amount</th>
                                     <th style="text-align: center;">Status</th>
-                                    <th style="text-align: center;">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="user-subs-table"></tbody>
+                            <tbody id="user-withdraw-table"></tbody>
                         </table>
                     </div>
                 </div>
@@ -255,16 +319,47 @@ app.get('/', (req, res) => {
                     .then(data => {
                         if(data.success) {
                             currentUser = data.user;
-                            document.getElementById('user-display-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
-                            document.getElementById('user-display-tg').innerText = '@' + currentUser.username;
-                            
+                            updateUserUI();
                             document.getElementById('login-card').classList.add('hidden');
                             document.getElementById('dashboard-card').classList.remove('hidden');
+                            switchUserTab('submit');
                             backToCategories();
                         } else {
                             alert(data.message);
                         }
                     });
+                }
+
+                function updateUserUI() {
+                    document.getElementById('user-display-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
+                    document.getElementById('user-display-tg').innerText = '@' + currentUser.username;
+                    document.getElementById('user-balance-display').innerText = '৳' + Number(currentUser.balance || 0).toFixed(2);
+                }
+
+                function refreshUserData() {
+                    fetch('/api/user/refresh/' + currentUser.username)
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            currentUser = data.user;
+                            updateUserUI();
+                        }
+                    });
+                }
+
+                function switchUserTab(tab) {
+                    if(tab === 'submit') {
+                        document.getElementById('tab-btn-submit').classList.add('active');
+                        document.getElementById('tab-btn-withdraw').classList.remove('active');
+                        document.getElementById('user-section-submit').classList.remove('hidden');
+                        document.getElementById('user-section-withdraw').classList.add('hidden');
+                    } else {
+                        document.getElementById('tab-btn-withdraw').classList.add('active');
+                        document.getElementById('tab-btn-submit').classList.remove('active');
+                        document.getElementById('user-section-withdraw').classList.remove('hidden');
+                        document.getElementById('user-section-submit').classList.add('hidden');
+                        loadUserWithdraws();
+                    }
                 }
 
                 function openCategory(catId, catName) {
@@ -279,6 +374,7 @@ app.get('/', (req, res) => {
                     activeCategory = null;
                     document.getElementById('category-form-view').classList.add('hidden');
                     document.getElementById('category-selection-view').classList.remove('hidden');
+                    refreshUserData();
                 }
 
                 function submitId() {
@@ -327,6 +423,52 @@ app.get('/', (req, res) => {
                         if(data.success) {
                             loadUserSubs();
                         }
+                    });
+                }
+
+                function sendWithdrawRequest() {
+                    const method = document.getElementById('withdraw-method').value;
+                    const phone = document.getElementById('withdraw-phone').value.trim();
+                    const amount = parseFloat(document.getElementById('withdraw-amount').value);
+
+                    if(!phone || !amount || amount <= 0) return alert('Please fill valid phone and amount!');
+                    if(amount > currentUser.balance) return alert('Insufficient balance!');
+
+                    fetch('/api/withdraw', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ username: currentUser.username, method, phone, amount })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            alert('Withdrawal request sent successfully!');
+                            document.getElementById('withdraw-phone').value = '';
+                            document.getElementById('withdraw-amount').value = '';
+                            refreshUserData();
+                            loadUserWithdraws();
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                }
+
+                function loadUserWithdraws() {
+                    fetch('/api/user/withdrawals/' + currentUser.username)
+                    .then(res => res.json())
+                    .then(data => {
+                        let tbody = document.getElementById('user-withdraw-table');
+                        tbody.innerHTML = '';
+                        if(data.withdrawals.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No withdrawal requests found.</td></tr>';
+                            return;
+                        }
+                        data.withdrawals.forEach(w => {
+                            let statusClass = w.status === 'success' ? 'status-success' : 'status-pending';
+                            let statusText = w.status === 'success' ? 'SUCCESS' : 'PENDING';
+                            let dateStr = new Date(w.date).toLocaleString();
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td>' + w.method + '</td><td>' + w.phone + '</td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
+                        });
                     });
                 }
 
@@ -381,24 +523,23 @@ app.get('/admin', (req, res) => {
                 th, td { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
                 th { background: rgba(3, 7, 18, 0.8); color: #cbd5e1; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
                 td { background: transparent; color: #cbd5e1; }
-                tr:hover td { background: rgba(255, 255, 255, 0.02); }
                 
-                .sheet-details { max-width: 350px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); color: #38bdf8; }
+                .sheet-details { max-width: 300px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); color: #38bdf8; }
                 .sheet-details::-webkit-scrollbar { height: 5px; }
                 .sheet-details::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
                 
-                .received-btn { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
-                .received-btn:hover { background: #059669; transform: scale(1.05); }
-                .received-text { color: #4ade80; font-weight: bold; text-align: center; display: inline-block; background: rgba(74,222,128,0.15); padding: 6px 12px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(74,222,128,0.3); }
+                .action-cell-flex { display: flex; align-items: center; gap: 8px; justify-content: center; }
+                .balance-input { width: 85px !important; padding: 6px 8px !important; margin-bottom: 0 !important; font-size: 13px !important; text-align: center; }
+                .received-btn { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
+                .received-btn:hover { background: #059669; }
+                .received-text { color: #4ade80; font-weight: bold; text-align: center; display: inline-block; background: rgba(74,222,128,0.15); padding: 6px 10px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(74,222,128,0.3); }
 
-                .row-download-btn { background: #6366f1; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 8px; transition: 0.2s; }
-                .row-download-btn:hover { background: #4f46e5; }
+                .row-download-btn { background: #6366f1; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 6px; }
 
                 @media (max-width: 600px) {
                     body { padding: 10px; }
                     .card { padding: 20px; }
                     .admin-container { padding: 15px !important; }
-                    .sheet-details { max-width: 180px; }
                 }
             </style>
         </head>
@@ -414,29 +555,30 @@ app.get('/admin', (req, res) => {
             <!-- Admin Dashboard -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category Wise Submissions</h2>
+                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category & Payout Control</h2>
                     <div class="header-btns">
                         <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
                         <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab Data</button>
                     </div>
                 </div>
 
-                <!-- Category Tabs -->
+                <!-- Category Tabs + Payout Tab -->
                 <div class="category-tabs" id="admin-tabs-container">
                     ${CATEGORIES.map((cat, index) => `
                         <button class="tab-btn ${index === 0 ? 'active' : ''}" onclick="switchAdminTab('${cat.id}', this)">${cat.name}</button>
                     `).join('')}
+                    <button class="tab-btn" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
                 </div>
 
                 <div class="sheet-scroll-box">
                     <table>
                         <thead>
-                            <tr>
+                            <tr id="table-header-row">
                                 <th>SL</th>
                                 <th>Date & Time</th>
                                 <th>Telegram Username</th>
                                 <th>Details / Cookies</th>
-                                <th>Action / Status</th>
+                                <th>Action & Add Balance</th>
                             </tr>
                         </thead>
                         <tbody id="admin-subs-table"></tbody>
@@ -446,6 +588,7 @@ app.get('/admin', (req, res) => {
 
             <script>
                 let allSubmissions = [];
+                let allWithdrawals = [];
                 let activeAdminCategory = '${CATEGORIES[0].id}';
 
                 function adminLogin() {
@@ -453,7 +596,7 @@ app.get('/admin', (req, res) => {
                     if(pass === '@MYPANEL') {
                         document.getElementById('admin-login-card').classList.add('hidden');
                         document.getElementById('admin-dashboard-card').classList.remove('hidden');
-                        loadAdminSubs();
+                        loadAdminData();
                     } else {
                         alert('Wrong Password! Use @MYPANEL');
                     }
@@ -466,44 +609,90 @@ app.get('/admin', (req, res) => {
                     renderAdminTable();
                 }
 
-                function loadAdminSubs() {
-                    fetch('/api/admin/submissions')
+                function loadAdminData() {
+                    fetch('/api/admin/data')
                     .then(res => res.json())
                     .then(data => {
                         allSubmissions = data.submissions;
+                        allWithdrawals = data.withdrawals;
                         renderAdminTable();
                     });
                 }
 
                 function renderAdminTable() {
+                    let theadRow = document.getElementById('table-header-row');
                     let tbody = document.getElementById('admin-subs-table');
                     tbody.innerHTML = '';
-                    
-                    let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
 
-                    if(filtered.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
-                        return;
-                    }
-
-                    filtered.forEach((s, index) => {
-                        let actionColumn = s.status === 'success' 
-                            ? '<span class="received-text">RECEIVED</span>' 
-                            : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
+                    if(activeAdminCategory === 'withdrawals') {
+                        theadRow.innerHTML = '<th>SL</th><th>Date & Time</th><th>Username</th><th>Method & Phone</th><th>Amount</th><th>Status / Action</th>';
                         
-                        let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥 Download</button>';
+                        if(allWithdrawals.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 25px;">No payment requests found.</td></tr>';
+                            return;
+                        }
 
-                        let dateStr = new Date(s.date).toLocaleString();
-                        tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
-                    });
+                        allWithdrawals.forEach((w, index) => {
+                            let actionCol = w.status === 'success' 
+                                ? '<span class="received-text">SUCCESS</span>' 
+                                : '<button class="received-btn" onclick="approveWithdraw(\\'' + w.id + '\\')">Approve / Pay</button>';
+                            
+                            let dateStr = new Date(w.date).toLocaleString();
+                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + w.username + '</strong></td><td>' + w.method + ' - <strong>' + w.phone + '</strong></td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;">' + actionCol + '</td></tr>';
+                        });
+
+                    } else {
+                        theadRow.innerHTML = '<th>SL</th><th>Date & Time</th><th>Telegram Username</th><th>Details / Cookies</th><th>Action & Add Balance</th>';
+                        
+                        let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
+
+                        if(filtered.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
+                            return;
+                        }
+
+                        filtered.forEach((s, index) => {
+                            let actionColumn = '';
+                            if(s.status === 'success') {
+                                actionColumn = '<span class="received-text">RECEIVED</span>';
+                            } else {
+                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\'' + s.id + '\', \'' + s.username + '\')">Received & Pay</button></div>';
+                            }
+                            
+                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\'' + s.username + '\', \'' + s.id + '\')">📥</button>';
+                            let dateStr = new Date(s.date).toLocaleString();
+                            
+                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
+                        });
+                    }
                 }
 
-                function markReceived(id) {
-                    fetch('/api/admin/update/' + id, {method: 'POST'})
+                function markReceivedAndAddBal(id, username) {
+                    const amountInput = document.getElementById('bal-' + id);
+                    const amount = parseFloat(amountInput.value) || 0;
+
+                    fetch('/api/admin/update-submission', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ id, username, amount })
+                    })
                     .then(res => res.json())
                     .then(data => {
                         if(data.success) {
-                            loadAdminSubs();
+                            loadAdminData();
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                }
+
+                function approveWithdraw(id) {
+                    if(!confirm('Mark this payment request as success?')) return;
+                    fetch('/api/admin/approve-withdraw/' + id, {method: 'POST'})
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            loadAdminData();
                         }
                     });
                 }
@@ -532,6 +721,7 @@ app.get('/admin', (req, res) => {
                 }
 
                 function downloadCategoryCSV() {
+                    if(activeAdminCategory === 'withdrawals') return alert('Cannot download withdrawals as category CSV.');
                     let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
                     if(filtered.length === 0) return alert('No data available to download in this category!');
                     
@@ -557,13 +747,14 @@ app.get('/admin', (req, res) => {
                 }
 
                 function clearCategorySubmissions() {
+                    if(activeAdminCategory === 'withdrawals') return alert('Cannot clear from here.');
                     if(!confirm('Are you sure you want to clear all submissions in this category?')) return;
                     
                     fetch('/api/admin/clear/' + activeAdminCategory, {method: 'POST'})
                     .then(res => res.json())
                     .then(data => {
                         if(data.success) {
-                            loadAdminSubs();
+                            loadAdminData();
                         }
                     });
                 }
@@ -583,7 +774,7 @@ app.post('/api/register', (req, res) => {
         return res.json({ success: false, message: 'Email or Username already exists!' });
     }
 
-    data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password });
+    data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password, balance: 0 });
     saveData(data);
     res.json({ success: true });
 });
@@ -597,6 +788,14 @@ app.post('/api/login', (req, res) => {
         return res.json({ success: false, message: 'Invalid email or password!' });
     }
 
+    res.json({ success: true, user });
+});
+
+app.get('/api/user/refresh/:username', (req, res) => {
+    const { username } = req.params;
+    const data = loadData();
+    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if(!user) return res.json({ success: false });
     res.json({ success: true, user });
 });
 
@@ -633,17 +832,68 @@ app.post('/api/delete/:id', (req, res) => {
     res.json({ success: true });
 });
 
-app.get('/api/admin/submissions', (req, res) => {
+app.post('/api/withdraw', (req, res) => {
+    const { username, method, phone, amount } = req.body;
     const data = loadData();
-    res.json({ success: true, submissions: data.submissions });
+    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    
+    if(!user || user.balance < amount) {
+        return res.json({ success: false, message: 'Insufficient balance!' });
+    }
+
+    user.balance -= amount;
+
+    const withdrawal = {
+        id: Date.now().toString(),
+        username,
+        method,
+        phone,
+        amount,
+        status: 'pending',
+        date: new Date().toISOString()
+    };
+
+    data.withdrawals.push(withdrawal);
+    saveData(data);
+    res.json({ success: true });
 });
 
-app.post('/api/admin/update/:id', (req, res) => {
-    const { id } = req.params;
+app.get('/api/user/withdrawals/:username', (req, res) => {
+    const { username } = req.params;
     const data = loadData();
-    const sub = data.submissions.find(s => s.id === id);
+    const userWithdraws = data.withdrawals.filter(w => w.username.toLowerCase() === username.toLowerCase());
+    res.json({ success: true, withdrawals: userWithdraws });
+});
+
+app.get('/api/admin/data', (req, res) => {
+    const data = loadData();
+    res.json({ success: true, submissions: data.submissions, withdrawals: data.withdrawals });
+});
+
+app.post('/api/admin/update-submission', (req, res) => {
+    const { id, username, amount } = req.body;
+    const data = loadData();
+    
+    let sub = data.submissions.find(s => s.id === id);
+    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+
     if(sub) {
         sub.status = 'success';
+    }
+    if(user && amount > 0) {
+        user.balance = (user.balance || 0) + parseFloat(amount);
+    }
+
+    saveData(data);
+    res.json({ success: true });
+});
+
+app.post('/api/admin/approve-withdraw/:id', (req, res) => {
+    const { id } = req.params;
+    const data = loadData();
+    let w = data.withdrawals.find(item => item.id === id);
+    if(w) {
+        w.status = 'success';
         saveData(data);
     }
     res.json({ success: true });
