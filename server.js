@@ -18,7 +18,7 @@ function loadData() {
     if (!data.withdrawals) data.withdrawals = [];
     if (!data.adminReports) data.adminReports = {};
     if (!data.categoryPrizes) data.categoryPrizes = {};
-    if (!data.claimedUids) data.claimedUids = {}; // { categoryId: [uids...] }
+    if (!data.claimedUids) data.claimedUids = {};
     return data;
 }
 
@@ -26,12 +26,20 @@ function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// ক্যাটেগরি লিস্ট
+// সাবমিট ক্যাটেগরি লিস্ট
 const CATEGORIES = [
     { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
     { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
     { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
     { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
+];
+
+// রিপোর্ট সেকশনের নতুন আইকনযুক্ত ক্যাটেগরি লিস্ট
+const REPORT_CATEGORIES = [
+    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '🛡️', gradient: 'linear-gradient(135deg, #f09433 0%, #dc2743 100%)' },
+    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '🌐', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
+    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🔑', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '💎', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
 ];
 
 // ==================== ১. ইউজার প্যানেল ====================
@@ -102,7 +110,6 @@ app.get('/', (req, res) => {
 
                 .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 30px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); max-width: 160px; }
 
-                /* Checker & Claim UI Style */
                 .checker-box { background: #0b0f19; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 25px; margin-top: 20px; }
                 .checker-title { text-align: center; font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 20px; letter-spacing: 0.5px; }
                 
@@ -114,6 +121,9 @@ app.get('/', (req, res) => {
                 
                 .claim-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
                 .claim-btn:hover { transform: scale(1.05); }
+
+                .claim-all-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(245,158,11,0.3); transition: 0.2s; }
+                .claim-all-btn:hover { transform: translateY(-2px); }
 
                 @media (max-width: 600px) {
                     body { padding: 10px; }
@@ -240,7 +250,7 @@ app.get('/', (req, res) => {
                         <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Check live UIDs and claim your rewards.</p>
                         
                         <div class="category-grid">
-                            ${CATEGORIES.map(cat => `
+                            ${REPORT_CATEGORIES.map(cat => `
                                 <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'report')">
                                     <span class="cat-icon">${cat.icon}</span>
                                     <div class="cat-title">${cat.name}</div>
@@ -463,6 +473,12 @@ app.get('/', (req, res) => {
                             let outputBox = document.getElementById('checker-output-box');
                             outputBox.innerHTML = '';
 
+                            const unclaimableLiveCount = results.filter(r => r.isLive && !r.isClaimed).length;
+                            if(unclaimableLiveCount > 0) {
+                                const totalLivePrize = unclaimableLiveCount * (results[0].prize || 0);
+                                outputBox.innerHTML += \`<button class="claim-all-btn" onclick="claimAllUids()">🔥 CLAIM ALL LIVE UIDs (\${unclaimableLiveCount} IDs - ৳\${totalLivePrize})</button>\`;
+                            }
+
                             results.forEach(r => {
                                 let badgeHtml = '';
                                 if(r.isClaimed) {
@@ -496,7 +512,25 @@ app.get('/', (req, res) => {
                     .then(data => {
                         if(data.success) {
                             alert(data.message);
-                            runUidChecker(); // Refresh scanner view
+                            runUidChecker();
+                            refreshUserData();
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                }
+
+                function claimAllUids() {
+                    fetch('/api/user/claim-all', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ category: activeCategory, username: currentUser.username })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            alert(data.message);
+                            runUidChecker();
                             refreshUserData();
                         } else {
                             alert(data.message);
@@ -726,15 +760,29 @@ app.get('/admin', (req, res) => {
                 <div id="admin-report-view" class="hidden">
                     <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
                         <h3 style="margin-top: 0; color: #38bdf8; font-size: 18px;" id="admin-report-title">Manage Report Box UIDs & Auto Prize</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Set the prize amount for this category and paste valid live UIDs (one UID per line).</p>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Set the prize amount and add/append new live UIDs. Saved UIDs will stay in history below.</p>
                         
                         <label>Category Prize Amount (BDT)</label>
                         <input type="number" id="admin-category-prize" placeholder="e.g. 50">
 
-                        <label>Report UIDs (One UID per line)</label>
-                        <textarea id="admin-report-textarea" rows="6" placeholder="Paste UIDs here..."></textarea>
+                        <label>Add New UIDs (One UID per line)</label>
+                        <textarea id="admin-report-textarea" rows="4" placeholder="Paste new UIDs here..."></textarea>
                         
-                        <button class="btn" onclick="saveAdminReportAndPrize()" style="max-width: 220px;">Save Settings</button>
+                        <button class="btn" onclick="saveAdminReportAndPrize()" style="max-width: 220px; margin-bottom: 25px;">Save & Append UIDs</button>
+
+                        <h4 style="color: #f8fafc; margin-bottom: 10px;">Saved UID History (<span id="saved-uids-count">0</span>)</h4>
+                        <div class="sheet-scroll-box" style="max-height: 250px;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 60px; text-align: center;">SL</th>
+                                        <th>UID</th>
+                                        <th style="text-align: center; width: 100px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-saved-uids-table"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -799,9 +847,9 @@ app.get('/admin', (req, res) => {
                         document.getElementById('admin-report-view').classList.remove('hidden');
                         document.getElementById('admin-top-btns').classList.add('hidden');
                         
-                        let currentUids = adminReports[activeAdminCategory] || [];
-                        document.getElementById('admin-report-textarea').value = currentUids.join('\\n');
+                        document.getElementById('admin-report-textarea').value = '';
                         document.getElementById('admin-category-prize').value = categoryPrizes[activeAdminCategory] || '';
+                        renderSavedUidsHistory();
                     }
                 }
 
@@ -814,6 +862,9 @@ app.get('/admin', (req, res) => {
                         adminReports = data.adminReports || {};
                         categoryPrizes = data.categoryPrizes || {};
                         renderAdminTable();
+                        if(activeAdminSubView === 'report') {
+                            renderSavedUidsHistory();
+                        }
                     });
                 }
 
@@ -862,33 +913,68 @@ app.get('/admin', (req, res) => {
                             
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                         });
-
-                        if(activeAdminSubView === 'report') {
-                            let currentUids = adminReports[activeAdminCategory] || [];
-                            document.getElementById('admin-report-textarea').value = currentUids.join('\\n');
-                            document.getElementById('admin-category-prize').value = categoryPrizes[activeAdminCategory] || '';
-                        }
                     }
                 }
 
+                function renderSavedUidsHistory() {
+                    let uidsList = adminReports[activeAdminCategory] || [];
+                    document.getElementById('saved-uids-count').innerText = uidsList.length;
+                    let tbody = document.getElementById('admin-saved-uids-table');
+                    tbody.innerHTML = '';
+
+                    if(uidsList.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 20px;">No saved UIDs in history.</td></tr>';
+                        return;
+                    }
+
+                    uidsList.forEach((uid, index) => {
+                        tbody.innerHTML += \`
+                            <tr>
+                                <td style="text-align: center; font-weight: 600;">\${index + 1}</td>
+                                <td style="font-family: monospace; color: #38bdf8;">\${uid}</td>
+                                <td style="text-align: center;"><button class="delete-btn" onclick="deleteSavedUid('\${uid}')">Delete</button></td>
+                            </tr>
+                        \`;
+                    });
+                }
+
                 function saveAdminReportAndPrize() {
-                    const text = document.getElementById('admin-report-textarea').value;
-                    const uids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
+                    const text = document.getElementById('admin-report-textarea').value.trim();
                     const prize = parseFloat(document.getElementById('admin-category-prize').value) || 0;
+                    const newUids = text ? text.split('\\n').map(u => u.trim()).filter(u => u.length > 0) : [];
 
                     fetch('/api/admin/save-report', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ category: activeAdminCategory, uids, prize })
+                        body: JSON.stringify({ category: activeAdminCategory, newUids, prize })
                     })
                     .then(res => res.json())
                     .then(data => {
                         if(data.success) {
                             adminReports = data.adminReports;
                             categoryPrizes = data.categoryPrizes;
-                            alert('Settings saved successfully!');
+                            document.getElementById('admin-report-textarea').value = '';
+                            renderSavedUidsHistory();
+                            alert('Settings saved and UIDs appended successfully!');
                         } else {
                             alert('Failed to save!');
+                        }
+                    });
+                }
+
+                function deleteSavedUid(uid) {
+                    if(!confirm('Are you sure you want to delete this UID from history?')) return;
+
+                    fetch('/api/admin/delete-uid', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ category: activeAdminCategory, uid })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            adminReports = data.adminReports;
+                            renderSavedUidsHistory();
                         }
                     });
                 }
@@ -1067,7 +1153,6 @@ app.post('/api/delete/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// UID Checker & Claim Status API
 app.post('/api/user/check-uids', (req, res) => {
     const { category, uids } = req.body;
     const data = loadData();
@@ -1084,7 +1169,6 @@ app.post('/api/user/check-uids', (req, res) => {
     res.json({ success: true, results });
 });
 
-// Auto Balance Claim API
 app.post('/api/user/claim-uid', (req, res) => {
     const { category, uid, username } = req.body;
     const data = loadData();
@@ -1109,11 +1193,40 @@ app.post('/api/user/claim-uid', (req, res) => {
     const prize = parseFloat(data.categoryPrizes[category]) || 0;
     user.balance = (user.balance || 0) + prize;
 
-    // Mark as claimed
     data.claimedUids[category].push(uid);
     saveData(data);
 
     res.json({ success: true, message: `Successfully claimed ৳${prize} added to your balance!` });
+});
+
+// Claim All Live UIDs API
+app.post('/api/user/claim-all', (req, res) => {
+    const { category, username } = req.body;
+    const data = loadData();
+
+    const adminUids = (data.adminReports && data.adminReports[category]) || [];
+    if (!data.claimedUids) data.claimedUids = {};
+    if (!data.claimedUids[category]) data.claimedUids[category] = [];
+
+    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if (!user) {
+        return res.json({ success: false, message: 'User not found!' });
+    }
+
+    const prize = parseFloat(data.categoryPrizes[category]) || 0;
+    let unclaimedLiveUids = adminUids.filter(uid => !data.claimedUids[category].includes(uid));
+
+    if (unclaimedLiveUids.length === 0) {
+        return res.json({ success: false, message: 'No unclaimed live UIDs available!' });
+    }
+
+    let totalReward = unclaimedLiveUids.length * prize;
+    user.balance = (user.balance || 0) + totalReward;
+
+    data.claimedUids[category].push(...unclaimedLiveUids);
+    saveData(data);
+
+    res.json({ success: true, message: `Successfully claimed ${unclaimedLiveUids.length} UIDs! Total ৳${totalReward} added to your balance.` });
 });
 
 app.post('/api/withdraw', (req, res) => {
@@ -1161,15 +1274,29 @@ app.get('/api/admin/data', (req, res) => {
 });
 
 app.post('/api/admin/save-report', (req, res) => {
-    const { category, uids, prize } = req.body;
+    const { category, newUids, prize } = req.body;
     const data = loadData();
     if(!data.adminReports) data.adminReports = {};
     if(!data.categoryPrizes) data.categoryPrizes = {};
     
-    data.adminReports[category] = uids;
+    let existingUids = data.adminReports[category] || [];
+    // Combine and keep unique UIDs
+    let combinedUids = Array.from(new Set([...existingUids, ...newUids]));
+
+    data.adminReports[category] = combinedUids;
     data.categoryPrizes[category] = prize;
     saveData(data);
     res.json({ success: true, adminReports: data.adminReports, categoryPrizes: data.categoryPrizes });
+});
+
+app.post('/api/admin/delete-uid', (req, res) => {
+    const { category, uid } = req.body;
+    const data = loadData();
+    if(data.adminReports && data.adminReports[category]) {
+        data.adminReports[category] = data.adminReports[category].filter(u => u !== uid);
+        saveData(data);
+    }
+    res.json({ success: true, adminReports: data.adminReports });
 });
 
 app.post('/api/admin/update-submission', (req, res) => {
