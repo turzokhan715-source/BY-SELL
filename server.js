@@ -57,7 +57,7 @@ app.get('/', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Premium User Panel - ID & Payment Portal</title>
+            <title>Premium User Panel - Sidebar Portal</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 * { box-sizing: border-box; }
@@ -83,13 +83,29 @@ app.get('/', (req, res) => {
                 
                 .dashboard-container { max-width: 950px !important; padding: 35px !important; }
                 
-                .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
-                .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
-                .balance-amount { font-size: 20px; font-weight: 800; color: #4ade80; }
+                /* Sidebar & Header Navbar */
+                .navbar-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
+                .menu-toggle-btn { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); width: 50px; height: 50px; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; cursor: pointer; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+                .menu-toggle-btn:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.15); }
+                .menu-toggle-btn span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
 
-                .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-                .nav-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
-                .nav-tab-btn.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
+                /* Sidebar Overlay & Content */
+                .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s ease; }
+                .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+                .sidebar { position: fixed; top: 0; left: -300px; width: 280px; height: 100%; background: #1e293b; border-right: 1px solid rgba(255,255,255,0.1); z-index: 999; transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1); padding: 30px 20px; display: flex; flex-direction: column; box-shadow: 10px 0 30px rgba(0,0,0,0.5); }
+                .sidebar.active { left: 0; }
+                .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px; }
+                .sidebar-close { background: none; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+                .sidebar-close:hover { color: #fff; }
+
+                .sidebar-menu-item { display: flex; align-items: center; gap: 14px; padding: 14px 16px; color: #cbd5e1; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); }
+                .sidebar-menu-item:hover, .sidebar-menu-item.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
+                .sidebar-menu-item.logout { background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.3); margin-top: auto; }
+                .sidebar-menu-item.logout:hover { background: #ef4444; color: white; }
+
+                .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 18px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
+                .balance-amount { font-size: 18px; font-weight: 800; color: #4ade80; }
 
                 .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-top: 25px; }
                 .cat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
@@ -114,8 +130,6 @@ app.get('/', (req, res) => {
                 
                 .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
                 .delete-btn:hover { transform: scale(1.05); }
-
-                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 30px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); max-width: 160px; }
 
                 .checker-box { background: #0b0f19; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 25px; margin-top: 20px; }
                 .checker-title { text-align: center; font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 20px; letter-spacing: 0.5px; }
@@ -188,30 +202,58 @@ app.get('/', (req, res) => {
                 <div class="switch-text" onclick="showLogin()">Already have an account? Login</div>
             </div>
 
+            <!-- Sidebar Overlay -->
+            <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+            <!-- Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div>
+                        <h4 style="margin: 0; color: #f8fafc; font-size: 16px;" id="sidebar-user-name">User Portal</h4>
+                        <span style="font-size: 12px; color: #38bdf8;" id="sidebar-user-tg">@username</span>
+                    </div>
+                    <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+                </div>
+
+                <div class="sidebar-menu-item active" id="sb-home" onclick="switchSidebarTab('home')">
+                    🏠 Home / Submit IDs
+                </div>
+                <div class="sidebar-menu-item" id="sb-report" onclick="switchSidebarTab('report')">
+                    🔍 Report File (UID Checker)
+                </div>
+                <div class="sidebar-menu-item" id="sb-withdraw" onclick="switchSidebarTab('withdraw')">
+                    💸 Payment / Withdraw
+                </div>
+                
+                <div class="sidebar-menu-item logout" onclick="logout()">
+                    🚪 Logout
+                </div>
+            </div>
+
             <!-- User Dashboard -->
             <div class="card dashboard-container hidden" id="dashboard-card">
-                <div class="top-bar">
-                    <div>
-                        <h2 style="text-align: left; margin: 0; font-size: 22px;">Welcome, <span id="user-display-name" style="color: #818cf8;"></span></h2>
-                        <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #38bdf8;"></span></p>
+                <div class="navbar-top">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div class="menu-toggle-btn" onclick="toggleSidebar()">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div>
+                            <h2 style="text-align: left; margin: 0; font-size: 20px;">Welcome, <span id="user-display-name" style="color: #818cf8;"></span></h2>
+                        </div>
                     </div>
                     <div class="balance-badge">
-                        <span>💰 Balance:</span>
+                        <span>💰</span>
                         <span class="balance-amount" id="user-balance-display">৳0.00</span>
                     </div>
                 </div>
 
-                <div class="user-nav-tabs">
-                    <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
-                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')">🔍 UID Checker & Claim</button>
-                    <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
-                </div>
-
-                <!-- Submit IDs Section -->
-                <div id="user-section-submit">
+                <!-- 1. Home / Submit IDs Section -->
+                <div id="user-section-home">
                     <div id="category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
+                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Home - ID Submit Categories</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to submit your IDs.</p>
                         
                         <div class="category-grid" id="user-submit-category-grid"></div>
                     </div>
@@ -243,11 +285,11 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
-                <!-- Report & UID Checker Section -->
+                <!-- 2. Report File & UID Checker Section -->
                 <div id="user-section-report" class="hidden">
                     <div id="report-category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker & Claim</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Check live UIDs and claim your rewards.</p>
+                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Report Files - Select Category</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Select admin uploaded report category to check live UIDs and claim rewards.</p>
                         
                         <div class="category-grid" id="user-report-category-grid"></div>
                     </div>
@@ -273,9 +315,9 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
-                <!-- Withdraw Section -->
+                <!-- 3. Payment / Withdraw Section -->
                 <div id="user-section-withdraw" class="hidden">
-                    <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Withdraw Request / Payment</h3>
+                    <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Payment / Withdraw Request</h3>
                     <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
 
                     <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); max-width: 500px;">
@@ -311,14 +353,12 @@ app.get('/', (req, res) => {
                         </table>
                     </div>
                 </div>
-
-                <button class="btn logout-btn" onclick="logout()">Logout</button>
             </div>
 
             <script>
                 let currentUser = null;
                 let activeCategory = null;
-                let activeMode = 'submit';
+                let activeNavTab = 'home';
                 let dynamicCategories = [];
 
                 window.onload = function() {
@@ -329,7 +369,7 @@ app.get('/', (req, res) => {
                         document.getElementById('login-card').classList.add('hidden');
                         document.getElementById('dashboard-card').classList.remove('hidden');
                         updateUserUI();
-                        switchUserTab('submit');
+                        switchSidebarTab('home');
                     }
                 };
 
@@ -354,7 +394,7 @@ app.get('/', (req, res) => {
 
                     dynamicCategories.forEach(cat => {
                         submitGrid.innerHTML += \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'submit')">
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'home')">
                                 <span class="cat-icon">\${cat.icon}</span>
                                 <div class="cat-title">\${cat.name}</div>
                             </div>
@@ -366,6 +406,11 @@ app.get('/', (req, res) => {
                             </div>
                         \`;
                     });
+                }
+
+                function toggleSidebar() {
+                    document.getElementById('sidebar').classList.toggle('active');
+                    document.getElementById('sidebar-overlay').classList.toggle('active');
                 }
 
                 function showRegister() {
@@ -422,8 +467,7 @@ app.get('/', (req, res) => {
                             updateUserUI();
                             document.getElementById('login-card').classList.add('hidden');
                             document.getElementById('dashboard-card').classList.remove('hidden');
-                            switchUserTab('submit');
-                            backToCategories();
+                            switchSidebarTab('home');
                         } else {
                             alert(data.message);
                         }
@@ -432,7 +476,8 @@ app.get('/', (req, res) => {
 
                 function updateUserUI() {
                     document.getElementById('user-display-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
-                    document.getElementById('user-display-tg').innerText = '@' + currentUser.username;
+                    document.getElementById('sidebar-user-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
+                    document.getElementById('sidebar-user-tg').innerText = '@' + currentUser.username;
                     document.getElementById('user-balance-display').innerText = '৳' + Number(currentUser.balance || 0).toFixed(2);
                 }
 
@@ -448,26 +493,29 @@ app.get('/', (req, res) => {
                     });
                 }
 
-                function switchUserTab(tab) {
+                function switchSidebarTab(tab) {
+                    toggleSidebar();
                     loadCategoriesAndInit();
-                    document.getElementById('tab-btn-submit').classList.remove('active');
-                    document.getElementById('tab-btn-report').classList.remove('active');
-                    document.getElementById('tab-btn-withdraw').classList.remove('active');
+                    activeNavTab = tab;
 
-                    document.getElementById('user-section-submit').classList.add('hidden');
+                    document.getElementById('sb-home').classList.remove('active');
+                    document.getElementById('sb-report').classList.remove('active');
+                    document.getElementById('sb-withdraw').classList.remove('active');
+
+                    document.getElementById('user-section-home').classList.add('hidden');
                     document.getElementById('user-section-report').classList.add('hidden');
                     document.getElementById('user-section-withdraw').classList.add('hidden');
 
-                    if(tab === 'submit') {
-                        document.getElementById('tab-btn-submit').classList.add('active');
-                        document.getElementById('user-section-submit').classList.remove('hidden');
+                    if(tab === 'home') {
+                        document.getElementById('sb-home').classList.add('active');
+                        document.getElementById('user-section-home').classList.remove('hidden');
                         backToCategories();
                     } else if(tab === 'report') {
-                        document.getElementById('tab-btn-report').classList.add('active');
+                        document.getElementById('sb-report').classList.add('active');
                         document.getElementById('user-section-report').classList.remove('hidden');
                         backToCategories();
-                    } else {
-                        document.getElementById('tab-btn-withdraw').classList.add('active');
+                    } else if(tab === 'withdraw') {
+                        document.getElementById('sb-withdraw').classList.add('active');
                         document.getElementById('user-section-withdraw').classList.remove('hidden');
                         loadUserWithdraws();
                     }
@@ -475,14 +523,13 @@ app.get('/', (req, res) => {
 
                 function openCategory(catId, catName, mode) {
                     activeCategory = catId;
-                    activeMode = mode;
-                    if(mode === 'submit') {
+                    if(mode === 'home') {
                         document.getElementById('active-category-title').innerText = catName;
                         document.getElementById('category-selection-view').classList.add('hidden');
                         document.getElementById('category-form-view').classList.remove('hidden');
                         loadUserSubs();
                     } else {
-                        document.getElementById('active-report-category-title').innerText = catName + ' - Checker & Claim';
+                        document.getElementById('active-report-category-title').innerText = catName + ' - Report File & Checker';
                         document.getElementById('report-category-selection-view').classList.add('hidden');
                         document.getElementById('report-checker-view').classList.remove('hidden');
                         document.getElementById('checker-input-uids').value = '';
@@ -682,6 +729,7 @@ app.get('/', (req, res) => {
                     localStorage.removeItem('portal_current_user');
                     document.getElementById('dashboard-card').classList.add('hidden');
                     document.getElementById('login-card').classList.remove('hidden');
+                    toggleSidebar();
                 }
             </script>
         </body>
