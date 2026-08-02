@@ -12,11 +12,13 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 function loadData() {
     if (!fs.existsSync(DATA_FILE)) {
-        return { users: [], submissions: [], withdrawals: [], adminReports: {} };
+        return { users: [], submissions: [], withdrawals: [], adminReports: {}, prices: {}, claimedUids: {} };
     }
     let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (!data.withdrawals) data.withdrawals = [];
     if (!data.adminReports) data.adminReports = {};
+    if (!data.prices) data.prices = {};
+    if (!data.claimedUids) data.claimedUids = {}; // কোন কোন UID ক্লেম করা হয়েছে তা ট্র্যাক করার জন্য
     return data;
 }
 
@@ -24,12 +26,12 @@ function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// ক্যাটেগরি লিস্ট
+// ক্যাটেগরি লিস্ট (ডিফল্ট প্রাইসসহ)
 const CATEGORIES = [
-    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
-    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
-    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
-    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
+    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', defaultPrice: 10 },
+    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)', defaultPrice: 15 },
+    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)', defaultPrice: 20 },
+    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)', defaultPrice: 12 }
 ];
 
 // ==================== ১. ইউজার প্যানেল ====================
@@ -40,7 +42,7 @@ app.get('/', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Premium User Panel - ID & Payment Portal</title>
+            <title>Premium User Panel - ID & Auto Payment Portal</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 * { box-sizing: border-box; }
@@ -80,6 +82,7 @@ app.get('/', (req, res) => {
                 .cat-card:hover { transform: translateY(-6px); border-color: rgba(99, 102, 241, 0.5); background: rgba(30, 41, 59, 0.8); box-shadow: 0 20px 40px rgba(99,102,241,0.2); }
                 .cat-icon { font-size: 40px; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
                 .cat-title { font-weight: 700; color: #f1f5f9; font-size: 15px; }
+                .cat-price-badge { margin-top: 10px; background: rgba(16, 185, 129, 0.15); color: #4ade80; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; border: 1px solid rgba(16, 185, 129, 0.3); }
 
                 .back-btn { background: rgba(255, 255, 255, 0.1); width: auto; padding: 10px 20px; margin-bottom: 20px; font-size: 13px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.1); }
                 .back-btn:hover { background: rgba(255, 255, 255, 0.2); transform: none; }
@@ -111,6 +114,10 @@ app.get('/', (req, res) => {
                 .stat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 15px; text-align: center; }
                 .stat-num { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 5px; }
                 .stat-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700; }
+
+                .claim-box { margin-top: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 20px; text-align: center; display: none; }
+                .claim-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px 25px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 25px rgba(16,185,129,0.4); width: 100%; transition: 0.3s; }
+                .claim-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16,185,129,0.6); }
 
                 @media (max-width: 600px) {
                     body { padding: 10px; }
@@ -184,7 +191,7 @@ app.get('/', (req, res) => {
 
                 <div class="user-nav-tabs">
                     <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
-                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')">🔍 UID Checker & Report</button>
+                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')">🔍 UID Checker & Auto Claim</button>
                     <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
                 </div>
 
@@ -194,13 +201,8 @@ app.get('/', (req, res) => {
                         <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
                         <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
                         
-                        <div class="category-grid">
-                            ${CATEGORIES.map(cat => `
-                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'submit')">
-                                    <span class="cat-icon">${cat.icon}</span>
-                                    <div class="cat-title">${cat.name}</div>
-                                </div>
-                            `).join('')}
+                        <div class="category-grid" id="user-submit-cat-grid">
+                            <!-- Dynamic populated with prices -->
                         </div>
                     </div>
 
@@ -234,16 +236,11 @@ app.get('/', (req, res) => {
                 <!-- Report & UID Checker Section -->
                 <div id="user-section-report" class="hidden">
                     <div id="report-category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Match your UIDs with admin report box.</p>
+                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker & Auto Claim</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Match your UIDs and claim instant balance for live IDs.</p>
                         
-                        <div class="category-grid">
-                            ${CATEGORIES.map(cat => `
-                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'report')">
-                                    <span class="cat-icon">${cat.icon}</span>
-                                    <div class="cat-title">${cat.name}</div>
-                                </div>
-                            `).join('')}
+                        <div class="category-grid" id="user-report-cat-grid">
+                            <!-- Dynamic populated with prices -->
                         </div>
                     </div>
 
@@ -277,6 +274,12 @@ app.get('/', (req, res) => {
                                         <div class="stat-num" id="stat-die" style="color: #f87171;">0%</div>
                                         <div class="stat-label" style="color: #f87171;">Die</div>
                                     </div>
+                                </div>
+
+                                <!-- Claim Section Box -->
+                                <div class="claim-box" id="claim-section-box">
+                                    <p style="margin: 0 0 12px 0; font-weight: 700; font-size: 15px; color: #34d399;" id="claimable-text">You have earned ৳0.00 from live UIDs!</p>
+                                    <button class="claim-btn" onclick="claimLiveUids()">🎁 CLAIM REWARD TO BALANCE</button>
                                 </div>
                             </div>
                         </div>
@@ -328,7 +331,73 @@ app.get('/', (req, res) => {
             <script>
                 let currentUser = null;
                 let activeCategory = null;
-                let activeMode = 'submit'; // 'submit' or 'report'
+                let activeMode = 'submit';
+                let currentLiveClaimableUids = [];
+                let categoryPrices = {};
+
+                // Check local session on load
+                window.onload = function() {
+                    const savedUser = localStorage.getItem('portal_user');
+                    if(savedUser) {
+                        currentUser = JSON.parse(savedUser);
+                        fetchPortalDataAndInit();
+                    }
+                };
+
+                function fetchPortalDataAndInit() {
+                    fetch('/api/portal-init')
+                    .then(res => res.json())
+                    .then(data => {
+                        categoryPrices = data.prices || {};
+                        renderCategoryGrids();
+                        if(currentUser) {
+                            refreshUserDataSilent();
+                            document.getElementById('login-card').classList.add('hidden');
+                            document.getElementById('dashboard-card').classList.remove('hidden');
+                        }
+                    });
+                }
+
+                function renderCategoryGrids() {
+                    const categoriesData = [
+                        { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', defaultPrice: 10 },
+                        { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)', defaultPrice: 15 },
+                        { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)', defaultPrice: 20 },
+                        { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)', defaultPrice: 12 }
+                    ];
+
+                    let submitHtml = '';
+                    let reportHtml = '';
+
+                    categoriesData.forEach(cat => {
+                        let price = categoryPrices[cat.id] !== undefined ? categoryPrices[cat.id] : cat.defaultPrice;
+                        let cardContent = \`
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', '\${thisMode || 'submit'}')">
+                                <span class="cat-icon">\${cat.icon}</span>
+                                <div class="cat-title">\${cat.name}</div>
+                                <div class="cat-price-badge">Price: ৳\${price} / ID</div>
+                            </div>
+                        \`;
+                        // We generate for both grids with correct mode function calls
+                        submitHtml += \`
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'submit')">
+                                <span class="cat-icon">\${cat.icon}</span>
+                                <div class="cat-title">\${cat.name}</div>
+                                <div class="cat-price-badge">Price: ৳\${price} / ID</div>
+                            </div>
+                        \`;
+                        reportHtml += \`
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'report')">
+                                <span class="cat-icon">\${cat.icon}</span>
+                                <div class="cat-title">\${cat.name}</div>
+                                <div class="cat-price-badge">Price: ৳\${price} / ID</div>
+                            </div>
+                        \`;
+                    });
+
+                    document.getElementById('user-submit-cat-grid').innerHTML = submitHtml;
+                    document.getElementById('user-report-cat-grid').innerHTML = reportHtml;
+                }
 
                 function showRegister() {
                     document.getElementById('login-card').classList.add('hidden');
@@ -380,7 +449,8 @@ app.get('/', (req, res) => {
                     .then(data => {
                         if(data.success) {
                             currentUser = data.user;
-                            updateUserUI();
+                            localStorage.setItem('portal_user', JSON.stringify(currentUser));
+                            fetchPortalDataAndInit();
                             document.getElementById('login-card').classList.add('hidden');
                             document.getElementById('dashboard-card').classList.remove('hidden');
                             switchUserTab('submit');
@@ -392,17 +462,20 @@ app.get('/', (req, res) => {
                 }
 
                 function updateUserUI() {
+                    if(!currentUser) return;
                     document.getElementById('user-display-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
                     document.getElementById('user-display-tg').innerText = '@' + currentUser.username;
                     document.getElementById('user-balance-display').innerText = '৳' + Number(currentUser.balance || 0).toFixed(2);
                 }
 
-                function refreshUserData() {
+                function refreshUserDataSilent() {
+                    if(!currentUser) return;
                     fetch('/api/user/refresh/' + currentUser.username)
                     .then(res => res.json())
                     .then(data => {
                         if(data.success) {
                             currentUser = data.user;
+                            localStorage.setItem('portal_user', JSON.stringify(currentUser));
                             updateUserUI();
                         }
                     });
@@ -441,7 +514,8 @@ app.get('/', (req, res) => {
                         document.getElementById('category-form-view').classList.remove('hidden');
                         loadUserSubs();
                     } else {
-                        document.getElementById('active-report-category-title').innerText = catName + ' - Report Checker';
+                        let price = categoryPrices[catId] || 10;
+                        document.getElementById('active-report-category-title').innerText = catName + ' (Rate: ৳' + price + '/ID)';
                         document.getElementById('report-category-selection-view').classList.add('hidden');
                         document.getElementById('report-checker-view').classList.remove('hidden');
                         document.getElementById('checker-input-uids').value = '';
@@ -449,6 +523,8 @@ app.get('/', (req, res) => {
                         document.getElementById('stat-total').innerText = '0';
                         document.getElementById('stat-live').innerText = '0%';
                         document.getElementById('stat-die').innerText = '0%';
+                        document.getElementById('claim-section-box').style.display = 'none';
+                        currentLiveClaimableUids = [];
                     }
                 }
 
@@ -458,7 +534,8 @@ app.get('/', (req, res) => {
                     document.getElementById('category-selection-view').classList.remove('hidden');
                     document.getElementById('report-checker-view').classList.add('hidden');
                     document.getElementById('report-category-selection-view').classList.remove('hidden');
-                    refreshUserData();
+                    refreshUserDataSilent();
+                    fetchPortalDataAndInit();
                 }
 
                 function runUidChecker() {
@@ -470,23 +547,27 @@ app.get('/', (req, res) => {
                     fetch('/api/user/check-uids', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ category: activeCategory, uids: userUids })
+                        body: JSON.stringify({ username: currentUser.username, category: activeCategory, uids: userUids })
                     })
                     .then(res => res.json())
                     .then(data => {
                         if(data.success) {
-                            const results = data.results; // array of {uid, isLive}
+                            const results = data.results; 
                             let outputBox = document.getElementById('checker-output-box');
                             outputBox.innerHTML = '';
 
                             let liveCount = 0;
                             let dieCount = 0;
                             let total = results.length;
+                            currentLiveClaimableUids = [];
 
                             results.forEach(r => {
                                 if(r.isLive) {
                                     liveCount++;
-                                    outputBox.innerHTML += '<div class="output-live">[LIVE] ID: ' + r.uid + '</div>';
+                                    outputBox.innerHTML += '<div class="output-live">[LIVE] ID: ' + r.uid + (r.alreadyClaimed ? ' (Already Claimed)' : '') + '</div>';
+                                    if(!r.alreadyClaimed) {
+                                        currentLiveClaimableUids.push(r.uid);
+                                    }
                                 } else {
                                     dieCount++;
                                     outputBox.innerHTML += '<div class="output-die">[DIE] ID: ' + r.uid + '</div>';
@@ -499,6 +580,40 @@ app.get('/', (req, res) => {
                             document.getElementById('stat-total').innerText = total;
                             document.getElementById('stat-live').innerText = livePercent + '%\\nLIVE';
                             document.getElementById('stat-die').innerText = diePercent + '%\\nDIE';
+
+                            // Show claim box if there are unclaimed live UIDs
+                            let price = categoryPrices[activeCategory] || 10;
+                            let totalClaimableAmount = currentLiveClaimableUids.length * price;
+
+                            if(currentLiveClaimableUids.length > 0) {
+                                document.getElementById('claimable-text').innerText = 'You have ' + currentLiveClaimableUids.length + ' unclaimed live ID(s) worth ৳' + totalClaimableAmount + '!';
+                                document.getElementById('claim-section-box').style.display = 'block';
+                            } else {
+                                document.getElementById('claim-section-box').style.display = 'none';
+                            }
+                        } else {
+                            alert(data.message);
+                        }
+                    });
+                }
+
+                function claimLiveUids() {
+                    if(currentLiveClaimableUids.length === 0) return alert('No claimable live IDs found!');
+
+                    fetch('/api/user/claim-uids', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ username: currentUser.username, category: activeCategory, uids: currentLiveClaimableUids })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            alert('Successfully claimed ৳' + data.rewardAmount + ' to your balance!');
+                            currentUser.balance = data.newBalance;
+                            localStorage.setItem('portal_user', JSON.stringify(currentUser));
+                            updateUserUI();
+                            document.getElementById('claim-section-box').style.display = 'none';
+                            currentLiveClaimableUids = [];
                         } else {
                             alert(data.message);
                         }
@@ -573,7 +688,7 @@ app.get('/', (req, res) => {
                             alert('Withdrawal request sent successfully!');
                             document.getElementById('withdraw-phone').value = '';
                             document.getElementById('withdraw-amount').value = '';
-                            refreshUserData();
+                            refreshUserDataSilent();
                             loadUserWithdraws();
                         } else {
                             alert(data.message);
@@ -602,6 +717,7 @@ app.get('/', (req, res) => {
 
                 function logout() {
                     currentUser = null;
+                    localStorage.removeItem('portal_user');
                     document.getElementById('dashboard-card').classList.add('hidden');
                     document.getElementById('login-card').classList.remove('hidden');
                 }
@@ -639,7 +755,7 @@ app.get('/admin', (req, res) => {
                 .tab-btn { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
                 .tab-btn.active { background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
 
-                .admin-sub-nav { display: flex; gap: 12px; margin-bottom: 20px; }
+                .admin-sub-nav { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
                 .sub-nav-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
                 .sub-nav-btn.active { background: #3b82f6; color: white; border-color: transparent; }
 
@@ -685,7 +801,7 @@ app.get('/admin', (req, res) => {
             <!-- Admin Dashboard -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category & Report Control</h2>
+                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category, Price & Report Control</h2>
                     <div class="header-btns" id="admin-top-btns">
                         <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
                         <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab Data</button>
@@ -699,10 +815,11 @@ app.get('/admin', (req, res) => {
                     <button class="tab-btn" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
                 </div>
 
-                <!-- Admin Sub View Toggle: Submissions vs Report Box Management -->
+                <!-- Admin Sub View Toggle -->
                 <div class="admin-sub-nav" id="admin-sub-nav-container">
                     <button class="sub-nav-btn active" id="sub-view-subs" onclick="switchAdminSubView('submissions')">📥 User Submissions</button>
                     <button class="sub-nav-btn" id="sub-view-report" onclick="switchAdminSubView('report')">⚙️ Manage Report UIDs</button>
+                    <button class="sub-nav-btn" id="sub-view-price" onclick="switchAdminSubView('price')">💰 Set ID Price</button>
                 </div>
 
                 <!-- Submissions View Box -->
@@ -726,11 +843,23 @@ app.get('/admin', (req, res) => {
                 <!-- Report UIDs Management Box -->
                 <div id="admin-report-view" class="hidden">
                     <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
-                        <h3 style="margin-top: 0; color: #38bdf8; font-size: 18px;" id="admin-report-title">Manage Report Box UIDs</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Enter valid UIDs for this category (one UID per line). Users checking UIDs here will get green for matching UIDs and red for non-matching UIDs.</p>
+                        <h3 style="margin-top: 0; color: #38bdf8; font-size: 18px;">Manage Report Box UIDs</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Enter valid UIDs for this category (one UID per line).</p>
                         
                         <textarea id="admin-report-textarea" rows="8" placeholder="Paste UIDs here..."></textarea>
                         <button class="btn" onclick="saveAdminReportUids()" style="max-width: 220px;">Save Report UIDs</button>
+                    </div>
+                </div>
+
+                <!-- Price Management Box -->
+                <div id="admin-price-view" class="hidden">
+                    <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); max-width: 450px;">
+                        <h3 style="margin-top: 0; color: #4ade80; font-size: 18px;">Set Price per Live ID</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Update the auto claim reward price for this category.</p>
+                        
+                        <label>Price (BDT)</label>
+                        <input type="number" id="admin-price-input" placeholder="10">
+                        <button class="btn" onclick="saveCategoryPrice()">Update Price</button>
                     </div>
                 </div>
             </div>
@@ -739,8 +868,9 @@ app.get('/admin', (req, res) => {
                 let allSubmissions = [];
                 let allWithdrawals = [];
                 let adminReports = {};
+                let categoryPrices = {};
                 let activeAdminCategory = '${CATEGORIES[0].id}';
-                let activeAdminSubView = 'submissions'; // 'submissions' or 'report'
+                let activeAdminSubView = 'submissions';
 
                 function adminLogin() {
                     const pass = document.getElementById('admin-pass').value;
@@ -782,21 +912,27 @@ app.get('/admin', (req, res) => {
                     activeAdminSubView = view;
                     document.getElementById('sub-view-subs').classList.remove('active');
                     document.getElementById('sub-view-report').classList.remove('active');
+                    document.getElementById('sub-view-price').classList.remove('active');
+
+                    document.getElementById('admin-submissions-view').classList.add('hidden');
+                    document.getElementById('admin-report-view').classList.add('hidden');
+                    document.getElementById('admin-price-view').classList.add('hidden');
 
                     if(view === 'submissions') {
                         document.getElementById('sub-view-subs').classList.add('active');
                         document.getElementById('admin-submissions-view').classList.remove('hidden');
-                        document.getElementById('admin-report-view').classList.add('hidden');
                         document.getElementById('admin-top-btns').classList.remove('hidden');
-                    } else {
+                    } else if(view === 'report') {
                         document.getElementById('sub-view-report').classList.add('active');
-                        document.getElementById('admin-submissions-view').classList.add('hidden');
                         document.getElementById('admin-report-view').classList.remove('hidden');
-                        document.getElementById('admin-top-btns').classList.add('hidden');
-                        
-                        // Load current category report UIDs into textarea
                         let currentUids = adminReports[activeAdminCategory] || [];
                         document.getElementById('admin-report-textarea').value = currentUids.join('\\n');
+                    } else if(view === 'price') {
+                        document.getElementById('sub-view-price').classList.add('active');
+                        document.getElementById('admin-price-view').classList.remove('hidden');
+                        let defaults = { instagram_2fa: 10, fb_page_cookies: 15, fb_cookies_id: 20, hotmail_cookies: 12 };
+                        let currentPrice = categoryPrices[activeAdminCategory] !== undefined ? categoryPrices[activeAdminCategory] : defaults[activeAdminCategory];
+                        document.getElementById('admin-price-input').value = currentPrice;
                     }
                 }
 
@@ -807,6 +943,7 @@ app.get('/admin', (req, res) => {
                         allSubmissions = data.submissions;
                         allWithdrawals = data.withdrawals;
                         adminReports = data.adminReports || {};
+                        categoryPrices = data.prices || {};
                         renderAdminTable();
                     });
                 }
@@ -856,12 +993,6 @@ app.get('/admin', (req, res) => {
                             
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                         });
-
-                        // Also update textarea if in report view
-                        if(activeAdminSubView === 'report') {
-                            let currentUids = adminReports[activeAdminCategory] || [];
-                            document.getElementById('admin-report-textarea').value = currentUids.join('\\n');
-                        }
                     }
                 }
 
@@ -879,8 +1010,24 @@ app.get('/admin', (req, res) => {
                         if(data.success) {
                             adminReports = data.adminReports;
                             alert('Report UIDs saved successfully!');
-                        } else {
-                            alert('Failed to save!');
+                        }
+                    });
+                }
+
+                function saveCategoryPrice() {
+                    const price = parseFloat(document.getElementById('admin-price-input').value);
+                    if(isNaN(price) || price < 0) return alert('Please enter a valid price!');
+
+                    fetch('/api/admin/save-price', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ category: activeAdminCategory, price })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            categoryPrices = data.prices;
+                            alert('Price updated successfully to ৳' + price + '!');
                         }
                     });
                 }
@@ -983,6 +1130,11 @@ app.get('/admin', (req, res) => {
 });
 
 // ==================== API ENDPOINTS ====================
+app.get('/api/portal-init', (req, res) => {
+    const data = loadData();
+    res.json({ success: true, prices: data.prices || {} });
+});
+
 app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
@@ -1059,19 +1211,60 @@ app.post('/api/delete/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// UID Checker API for Users
+// Check UIDs and verify if already claimed
 app.post('/api/user/check-uids', (req, res) => {
-    const { category, uids } = req.body;
+    const { username, category, uids } = req.body;
     const data = loadData();
     const adminUids = (data.adminReports && data.adminReports[category]) || [];
+    if(!data.claimedUids) data.claimedUids = {};
 
-    // Check each user UID against adminUids
     const results = uids.map(uid => {
         const isLive = adminUids.includes(uid);
-        return { uid, isLive };
+        const alreadyClaimed = data.claimedUids[uid] === true;
+        return { uid, isLive, alreadyClaimed };
     });
 
     res.json({ success: true, results });
+});
+
+// Claim live UIDs and auto add balance
+app.post('/api/user/claim-uids', (req, res) => {
+    const { username, category, uids } = req.body;
+    const data = loadData();
+    
+    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    if(!user) return res.json({ success: false, message: 'User not found!' });
+
+    if(!data.claimedUids) data.claimedUids = {};
+    const adminUids = (data.adminReports && data.adminReports[category]) || [];
+    
+    // Default prices per category
+    const defaultPrices = { instagram_2fa: 10, fb_page_cookies: 15, fb_cookies_id: 20, hotmail_cookies: 12 };
+    let pricePerId = (data.prices && data.prices[category] !== undefined) ? data.prices[category] : defaultPrices[category];
+
+    let validUidsToClaim = [];
+    uids.forEach(uid => {
+        if(adminUids.includes(uid) && !data.claimedUids[uid]) {
+            validUidsToClaim.push(uid);
+        }
+    });
+
+    if(validUidsToClaim.length === 0) {
+        return res.json({ success: false, message: 'No valid unclaimed live UIDs to claim!' });
+    }
+
+    let rewardAmount = validUidsToClaim.length * pricePerId;
+
+    // Mark as claimed
+    validUidsToClaim.forEach(uid => {
+        data.claimedUids[uid] = true;
+    });
+
+    // Add balance to user
+    user.balance = (user.balance || 0) + rewardAmount;
+    saveData(data);
+
+    res.json({ success: true, rewardAmount, newBalance: user.balance });
 });
 
 app.post('/api/withdraw', (req, res) => {
@@ -1113,7 +1306,8 @@ app.get('/api/admin/data', (req, res) => {
         success: true, 
         submissions: data.submissions, 
         withdrawals: data.withdrawals,
-        adminReports: data.adminReports || {}
+        adminReports: data.adminReports || {},
+        prices: data.prices || {}
     });
 });
 
@@ -1124,6 +1318,15 @@ app.post('/api/admin/save-report', (req, res) => {
     data.adminReports[category] = uids;
     saveData(data);
     res.json({ success: true, adminReports: data.adminReports });
+});
+
+app.post('/api/admin/save-price', (req, res) => {
+    const { category, price } = req.body;
+    const data = loadData();
+    if(!data.prices) data.prices = {};
+    data.prices[category] = price;
+    saveData(data);
+    res.json({ success: true, prices: data.prices });
 });
 
 app.post('/api/admin/update-submission', (req, res) => {
