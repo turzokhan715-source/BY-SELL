@@ -461,12 +461,11 @@ app.get('/api/admin/submissions', (req, res) => {
 
 app.post('/api/admin/update/:id', (req, res) => {
     const { id } = req.params;
-    const data.submissions = data.submissions || [];
-    const dataObj = loadData();
-    const sub = dataObj.submissions.find(s => s.id === id);
+    const data = loadData();
+    const sub = data.submissions.find(s => s.id === id);
     if(sub) {
         sub.status = 'success';
-        saveData(dataObj);
+        saveData(data);
     }
     res.json({ success: true });
 });
