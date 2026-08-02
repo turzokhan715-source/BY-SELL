@@ -32,50 +32,53 @@ app.get('/', (req, res) => {
             <title>User Panel - ID Submission</title>
             <style>
                 * { box-sizing: border-box; }
-                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); margin: 0; padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
                 
-                .card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); width: 100%; max-width: 450px; padding: 35px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
-                .icon-box { width: 60px; height: 60px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 16px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3); }
+                .card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+                .icon-box { width: 50px; height: 50px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 14px; margin: 0 auto 15px; display: flex; justify-content: center; align-items: center; color: white; font-size: 24px; box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3); }
                 
-                h2 { text-align: center; color: #111827; margin-bottom: 5px; font-weight: 700; }
-                p.subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 25px; }
-                label { display: block; font-size: 12px; font-weight: 700; color: #4b5563; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+                h2 { text-align: center; color: #111827; margin-bottom: 5px; font-weight: 700; font-size: 22px; }
+                p.subtitle { text-align: center; color: #6b7280; font-size: 13px; margin-bottom: 20px; }
+                label { display: block; font-size: 11px; font-weight: 700; color: #4b5563; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
                 
-                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: #f9fafb; outline: none; transition: all 0.3s ease; }
+                input, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: all 0.3s ease; }
                 input:focus, textarea:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
                 
-                .btn { background: linear-gradient(135deg, #4f46e5, #6d28d9); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+                .btn { background: linear-gradient(135deg, #4f46e5, #6d28d9); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
                 
-                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #4f46e5; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+                .switch-text { text-align: center; margin-top: 15px; font-size: 12px; color: #4f46e5; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
                 .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
-                .dashboard-container { max-width: 1100px !important; width: 95% !important; padding: 35px !important; }
-                .sheet-scroll-box { max-height: 450px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 10px; margin-top: 15px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                .dashboard-container { max-width: 1000px !important; width: 100% !important; padding: 20px !important; }
+                .sheet-scroll-box { max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 10px; margin-top: 15px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
                 
-                table { width: 100%; border-collapse: collapse; min-width: 850px; background: white; font-size: 14px; }
-                th, td { border: 1px solid #d1d5db; padding: 14px 16px; text-align: left; white-space: nowrap; }
+                table { width: 100%; border-collapse: collapse; min-width: 750px; background: white; font-size: 13px; }
+                th, td { border: 1px solid #d1d5db; padding: 12px 14px; text-align: left; white-space: nowrap; }
                 th { background: #f8fafc; color: #374151; position: sticky; top: 0; z-index: 10; font-weight: 700; text-align: center; }
                 td { color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
                 
-                .sheet-details { max-width: 550px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 8px; border-radius: 6px; border: 1px solid #eee; }
-                .sheet-details::-webkit-scrollbar { height: 6px; }
+                .sheet-details { max-width: 350px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 6px; border: 1px solid #eee; }
+                .sheet-details::-webkit-scrollbar { height: 5px; }
                 .sheet-details::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
                 
-                .status-pending { color: #d97706; font-weight: 700; background: #fef3c7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; text-align: center; }
-                .status-success { color: #16a34a; font-weight: 700; background: #dcfce7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; text-align: center; }
+                .status-pending { color: #d97706; font-weight: 700; background: #fef3c7; padding: 5px 10px; border-radius: 20px; display: inline-block; font-size: 11px; text-align: center; }
+                .status-success { color: #16a34a; font-weight: 700; background: #dcfce7; padding: 5px 10px; border-radius: 20px; display: inline-block; font-size: 11px; text-align: center; }
                 
-                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
+                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
                 .delete-btn:hover { transform: scale(1.05); }
 
-                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 25px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); max-width: 200px; }
+                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 20px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); max-width: 160px; }
                 .logout-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
 
-                @media (max-width: 768px) {
-                    body { padding: 10px; }
-                    .card, .dashboard-container { padding: 20px !important; }
+                @media (max-width: 600px) {
+                    body { padding: 5px; }
+                    .card { padding: 15px; border-radius: 16px; }
+                    .dashboard-container { padding: 12px !important; }
+                    h2 { font-size: 18px; }
+                    .sheet-details { max-width: 200px; }
                 }
             </style>
         </head>
@@ -103,7 +106,7 @@ app.get('/', (req, res) => {
                 <h2>Create Account</h2>
                 <p class="subtitle">Join our platform today</p>
                 
-                <div style="display: flex; gap: 12px;">
+                <div style="display: flex; gap: 10px;">
                     <div>
                         <label>First Name</label>
                         <input type="text" id="reg-firstname" placeholder="John">
@@ -130,17 +133,17 @@ app.get('/', (req, res) => {
             <!-- User Dashboard -->
             <div class="card dashboard-container hidden" id="dashboard-card">
                 <div>
-                    <h2 style="text-align: left; margin: 0; font-size: 24px;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
-                    <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
+                    <h2 style="text-align: left; margin: 0; font-size: 20px;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
+                    <p class="subtitle" style="text-align: left; margin: 3px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
                 </div>
                 
-                <div style="margin-top: 25px;">
+                <div style="margin-top: 20px;">
                     <label>Submit ID Details / Cookies</label>
-                    <textarea id="id-details" rows="4" placeholder="Paste your ID details or cookies here..."></textarea>
-                    <button class="btn" onclick="submitId()" style="width: 220px;">Submit Now</button>
+                    <textarea id="id-details" rows="3" placeholder="Paste your ID details or cookies here..."></textarea>
+                    <button class="btn" onclick="submitId()" style="width: 180px;">Submit Now</button>
                 </div>
 
-                <h3 style="margin-top: 35px; color: #111827; font-size: 18px;">Google Sheet Format - History</h3>
+                <h3 style="margin-top: 25px; color: #111827; font-size: 16px;">Google Sheet Format - History</h3>
                 <div class="sheet-scroll-box">
                     <table>
                         <thead>
@@ -289,47 +292,49 @@ app.get('/admin', (req, res) => {
             <title>Admin Dashboard - Modern Sheet</title>
             <style>
                 * { box-sizing: border-box; }
-                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                .card { background: white; width: 100%; max-width: 420px; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
-                h2 { text-align: center; color: #1e293b; margin-bottom: 25px; font-weight: 700; }
-                input { width: 100%; padding: 14px 18px; margin-bottom: 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; background: #f8fafc; outline: none; transition: 0.3s; }
+                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; margin: 0; padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                .card { background: white; width: 100%; max-width: 400px; padding: 30px; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+                h2 { text-align: center; color: #1e293b; margin-bottom: 20px; font-weight: 700; font-size: 20px; }
+                input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #f8fafc; outline: none; transition: 0.3s; }
                 input:focus { border-color: #059669; background: #fff; box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1); }
-                .btn { background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
+                .btn { background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4); }
                 .hidden { display: none !important; }
 
                 /* Modern Admin Sheet Style */
-                .admin-container { max-width: 1350px !important; width: 96% !important; padding: 30px !important; border-radius: 16px; }
-                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+                .admin-container { max-width: 1300px !important; width: 100% !important; padding: 20px !important; border-radius: 14px; }
+                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
                 
-                .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-                .action-global-btn { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; box-shadow: 0 2px 6px rgba(37,99,235,0.3); display: flex; align-items: center; gap: 6px; }
+                .header-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+                .action-global-btn { background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 2px 6px rgba(37,99,235,0.3); display: flex; align-items: center; gap: 5px; }
                 .action-global-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
                 
                 .clear-btn { background: #dc2626 !important; box-shadow: 0 2px 6px rgba(220,38,38,0.3) !important; }
                 .clear-btn:hover { background: #b91c1c !important; }
 
-                .sheet-scroll-box { max-height: 600px; overflow-y: auto; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 1050px; background: white; }
-                th, td { border: 1px solid #e2e8f0; padding: 12px 16px; text-align: left; white-space: nowrap; }
+                .sheet-scroll-box { max-height: 550px; overflow-y: auto; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+                table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 950px; background: white; }
+                th, td { border: 1px solid #e2e8f0; padding: 10px 14px; text-align: left; white-space: nowrap; }
                 th { background: #0f172a; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
                 td { background: #ffffff; color: #334155; }
                 tr:nth-child(even) td { background: #f8fafc; }
                 
-                .sheet-details { max-width: 420px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; }
-                .sheet-details::-webkit-scrollbar { height: 5px; }
+                .sheet-details { max-width: 320px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #f1f5f9; padding: 5px 8px; border-radius: 6px; border: 1px solid #cbd5e1; }
+                .sheet-details::-webkit-scrollbar { height: 4px; }
                 .sheet-details::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
                 
-                .received-btn { background: #059669; color: white; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; box-shadow: 0 2px 4px rgba(5,150,105,0.2); }
+                .received-btn { background: #059669; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 2px 4px rgba(5,150,105,0.2); }
                 .received-btn:hover { background: #047857; transform: scale(1.05); }
-                .received-text { color: #047857; font-weight: bold; text-align: center; display: inline-block; background: #d1fae5; padding: 5px 12px; border-radius: 6px; font-size: 12px; }
+                .received-text { color: #047857; font-weight: bold; text-align: center; display: inline-block; background: #d1fae5; padding: 4px 10px; border-radius: 6px; font-size: 11px; }
 
-                .row-download-btn { background: #4f46e5; color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 2px 4px rgba(79,70,229,0.2); margin-left: 8px; }
+                .row-download-btn { background: #4f46e5; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; box-shadow: 0 2px 4px rgba(79,70,229,0.2); margin-left: 6px; }
                 .row-download-btn:hover { background: #4338ca; transform: scale(1.05); }
 
-                @media (max-width: 768px) {
-                    body { padding: 10px; }
-                    .card, .admin-container { padding: 15px !important; }
+                @media (max-width: 600px) {
+                    body { padding: 5px; }
+                    .card { padding: 20px; }
+                    .admin-container { padding: 12px !important; }
+                    .sheet-details { max-width: 180px; }
                 }
             </style>
         </head>
@@ -345,7 +350,7 @@ app.get('/admin', (req, res) => {
             <!-- Admin Sheet View -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #0f172a; font-size: 22px;">📊 Admin Panel - Live Submissions</h2>
+                    <h2 style="margin: 0; color: #0f172a; font-size: 18px;">📊 Admin Panel - Live Submissions</h2>
                     <div class="header-btns">
                         <button class="action-global-btn" onclick="downloadAllCSV()">📥 Download All (CSV)</button>
                         <button class="action-global-btn clear-btn" onclick="clearAllSubmissions()">🗑️ Clear All</button>
@@ -390,7 +395,7 @@ app.get('/admin', (req, res) => {
                         tbody.innerHTML = '';
                         
                         if(allSubmissions.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 25px;">No submissions found.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No submissions found.</td></tr>';
                             return;
                         }
 
@@ -399,7 +404,6 @@ app.get('/admin', (req, res) => {
                                 ? '<span class="received-text">RECEIVED</span>' 
                                 : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
                             
-                            // প্রতিটা আইডির পাশে আলাদা ডাউনলোড বাটন
                             let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥 Download</button>';
 
                             let dateStr = new Date(s.date).toLocaleString();
@@ -418,7 +422,6 @@ app.get('/admin', (req, res) => {
                     });
                 }
 
-                // নির্দিষ্ট একটি আইডি ডাউনলোড করার ফাংশন
                 function downloadSingleRow(username, id) {
                     let sub = allSubmissions.find(s => s.id === id);
                     if(!sub) return alert('Data not found!');
@@ -465,7 +468,6 @@ app.get('/admin', (req, res) => {
                     document.body.removeChild(link);
                 }
 
-                // সমস্ত আইডি একসাথে ক্লিয়ার বা ডিলিট করার ফাংশন
                 function clearAllSubmissions() {
                     if(!confirm('Are you sure you want to clear ALL submissions? This cannot be undone!')) return;
                     
@@ -558,7 +560,6 @@ app.post('/api/admin/update/:id', (req, res) => {
     res.json({ success: true });
 });
 
-// সমস্ত সাবমিশন ক্লিয়ার করার এন্ডপয়েন্ট
 app.post('/api/admin/clear', (req, res) => {
     const data = loadData();
     data.submissions = [];
