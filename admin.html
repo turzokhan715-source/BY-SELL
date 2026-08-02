@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background: #4f46e5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #4338ca; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; font-size: 14px; }
+        th { background: #f9fafb; }
+        .status-pending { color: #d97706; font-weight: bold; }
+        .status-success { color: #16a34a; font-weight: bold; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="text-align: center; color: #1f2937;">Admin Management Panel</h2>
+        
+        <div id="admin-login-section">
+            <h3>Admin Login</h3>
+            <input type="password" id="admin-pass" placeholder="Enter Admin Password">
+            <button onclick="adminLogin()" style="width: 100%;">Login</button>
+        </div>
+
+        <div id="admin-dashboard-section" class="hidden">
+            <h3>All Submissions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Details</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-subs-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function adminLogin() {
+            let pass = document.getElementById('admin-pass').value;
+            if(pass === '@MYPANEL') {
+                document.getElementById('admin-login-section').classList.add('hidden');
+                document.getElementById('admin-dashboard-section').classList.remove('hidden');
+                loadAdminSubs();
+            } else {
+                alert('Wrong Password!');
+            }
+        }
+
+        function loadAdminSubs() {
+            fetch('/api/admin/submissions')
+            .then(res => res.json())
+            .then(data => {
+                let tbody = document.getElementById('admin-subs-table');
+                tbody.innerHTML = '';
+                data.submissions.forEach(s => {
+                    let actionBtn = s.status === 'success' ? '<span style="color: green; font-weight: bold;">Received</span>' : `<button onclick="markReceived('${s.id}')">Mark Received</button>`;
+                    tbody.innerHTML += `<tr>
+                        <td>@${s.username}</td>
+                        <td>${s.details}</td>
+                        <td class="status-${s.status}">${s.status.toUpperCase()}</td>
+                        <td>${actionBtn}</td>
+                    </tr>`;
+                });
+            });
+        }
+
+        function markReceived(id) {
+            fetch('/api/admin/update/' + id, {method: 'POST'})
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    loadAdminSubs();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
