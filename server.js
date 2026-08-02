@@ -83,13 +83,11 @@ app.get('/', (req, res) => {
                 
                 .dashboard-container { max-width: 950px !important; padding: 35px !important; }
                 
-                /* Sidebar & Header Navbar */
                 .navbar-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
                 .menu-toggle-btn { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); width: 50px; height: 50px; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; cursor: pointer; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
                 .menu-toggle-btn:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.15); }
                 .menu-toggle-btn span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
 
-                /* Sidebar Overlay & Content */
                 .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s ease; }
                 .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
@@ -394,18 +392,24 @@ app.get('/', (req, res) => {
 
                     dynamicCategories.forEach(cat => {
                         submitGrid.innerHTML += `
-                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'home')">
+                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" data-cat-id="${cat.id}" data-cat-name="${cat.name.replace(/"/g, '&quot;')}" onclick="openCategoryFromCard(this, 'home')">
                                 <span class="cat-icon">${cat.icon}</span>
                                 <div class="cat-title">${cat.name}</div>
                             </div>
                         `;
                         reportGrid.innerHTML += `
-                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'report')">
+                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" data-cat-id="${cat.id}" data-cat-name="${cat.name.replace(/"/g, '&quot;')}" onclick="openCategoryFromCard(this, 'report')">
                                 <span class="cat-icon">${cat.icon}</span>
                                 <div class="cat-title">${cat.name}</div>
                             </div>
                         `;
                     });
+                }
+
+                function openCategoryFromCard(element, mode) {
+                    const catId = element.getAttribute('data-cat-id');
+                    const catName = element.getAttribute('data-cat-name');
+                    openCategory(catId, catName, mode);
                 }
 
                 function toggleSidebar() {
@@ -1329,7 +1333,6 @@ app.post('/api/admin/delete-category', (req, res) => {
     res.json({ success: true, categories: data.categories });
 });
 
-// এক মেইলে একটি অ্যাকাউন্ট খোলার চেকিং (Duplicate Email Prevention)
 app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
@@ -1491,7 +1494,6 @@ app.post('/api/user/claim-all', (req, res) => {
     res.json({ success: true, message: `Successfully claimed ${unclaimedLiveUids.length} UIDs! Total ৳${totalReward} added to your balance.` });
 });
 
-// পেমেন্ট/উইথড্র রিকোয়েস্ট সাবমিট করার লজিক (যা ইউজারের হিস্ট্রিতে পেন্ডিং দেখাবে)
 app.post('/api/withdraw', (req, res) => {
     const { username, method, phone, amount } = req.body;
     const data = loadData();
@@ -1509,7 +1511,7 @@ app.post('/api/withdraw', (req, res) => {
         method,
         phone,
         amount: parseFloat(amount),
-        status: 'pending', // প্রাথমিক স্ট্যাটাস পেন্ডিং থাকবে
+        status: 'pending',
         date: new Date().toISOString()
     };
 
@@ -1582,13 +1584,12 @@ app.post('/api/admin/update-submission', (req, res) => {
     res.json({ success: true });
 });
 
-// অ্যাডমিন প্যানেল থেকে পেমেন্ট রিকোয়েস্ট অ্যাপ্রুভ করলে সাকসেস (success) করার লজিক
 app.post('/api/admin/approve-withdraw/:id', (req, res) => {
     const { id } = req.params;
     const data = loadData();
     let w = data.withdrawals.find(item => item.id === id);
     if(w) {
-        w.status = 'success'; // স্ট্যাটাস সাকসেস আপডেট হবে
+        w.status = 'success';
         saveData(data);
     }
     res.json({ success: true });
