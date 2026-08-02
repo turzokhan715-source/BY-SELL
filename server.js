@@ -26,7 +26,6 @@ function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// সাবমিট ক্যাটেগরি লিস্ট
 const CATEGORIES = [
     { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
     { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
@@ -34,7 +33,6 @@ const CATEGORIES = [
     { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
 ];
 
-// রিপোর্ট সেকশনের নতুন আইকনযুক্ত ক্যাটেগরি লিস্ট
 const REPORT_CATEGORIES = [
     { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '🛡️', gradient: 'linear-gradient(135deg, #f09433 0%, #dc2743 100%)' },
     { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '🌐', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
@@ -50,87 +48,79 @@ app.get('/', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Premium User Panel - ID & Payment Portal</title>
+            <title>VoltX Portal - User Dashboard</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 * { box-sizing: border-box; }
-                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
                 
-                .card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 540px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-                .icon-box { width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 16px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); }
+                .card { background: #111827; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 480px; padding: 35px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6); }
+                .icon-box { width: 54px; height: 54px; background: #10b981; border-radius: 14px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 24px; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); }
                 
-                h2 { text-align: center; color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 24px; }
-                p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
-                label { display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
+                h2 { text-align: center; color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 22px; }
+                p.subtitle { text-align: center; color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
+                label { display: block; font-size: 11px; font-weight: 700; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
                 
-                input, textarea, select { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(15, 23, 42, 0.6); color: #fff; outline: none; transition: all 0.3s ease; font-family: inherit; }
-                input:focus, textarea:focus, select:focus { border-color: #6366f1; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
-                select option { background: #0f172a; color: #fff; }
+                input, textarea, select { width: 100%; padding: 12px 16px; margin-bottom: 18px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; font-size: 14px; background: #030712; color: #fff; outline: none; transition: all 0.3s ease; font-family: inherit; }
+                input:focus, textarea:focus, select:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+                select option { background: #0b0f19; color: #fff; }
                 
-                .btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); font-family: inherit; }
-                .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.6); }
+                .btn { background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); font-family: inherit; }
+                .btn:hover { background: #059669; transform: translateY(-1px); }
                 
-                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #818cf8; font-weight: 600; cursor: pointer; letter-spacing: 0.5px; }
+                .switch-text { text-align: center; margin-top: 18px; font-size: 13px; color: #34d399; font-weight: 600; cursor: pointer; }
                 .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
-                .dashboard-container { max-width: 950px !important; padding: 35px !important; }
+                .dashboard-container { max-width: 950px !important; padding: 30px !important; }
                 
                 .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
-                .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
-                .balance-amount { font-size: 20px; font-weight: 800; color: #4ade80; }
+                .balance-badge { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 16px; border-radius: 12px; display: flex; align-items: center; gap: 8px; }
+                .balance-amount { font-size: 18px; font-weight: 800; color: #4ade80; }
 
                 .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-                .nav-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
-                .nav-tab-btn.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
+                .nav-tab-btn { background: #1f2937; border: 1px solid rgba(255,255,255,0.05); color: #94a3b8; padding: 10px 18px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; font-size: 13px; }
+                .nav-tab-btn.active { background: #10b981; color: white; border-color: transparent; }
 
-                .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-top: 25px; }
-                .cat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
-                .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
-                .cat-card:hover { transform: translateY(-6px); border-color: rgba(99, 102, 241, 0.5); background: rgba(30, 41, 59, 0.8); box-shadow: 0 20px 40px rgba(99,102,241,0.2); }
-                .cat-icon { font-size: 40px; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
-                .cat-title { font-weight: 700; color: #f1f5f9; font-size: 15px; }
+                .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-top: 20px; }
+                .cat-card { background: #1f2937; border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; padding: 22px 18px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+                .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: var(--accent-gradient); }
+                .cat-card:hover { transform: translateY(-4px); border-color: #10b981; background: #374151; }
+                .cat-icon { font-size: 36px; margin-bottom: 12px; display: block; }
+                .cat-title { font-weight: 700; color: #f1f5f9; font-size: 14px; }
 
-                .back-btn { background: rgba(255, 255, 255, 0.1); width: auto; padding: 10px 20px; margin-bottom: 20px; font-size: 13px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.1); }
-                .back-btn:hover { background: rgba(255, 255, 255, 0.2); transform: none; }
+                .back-btn { background: #374151; width: auto; padding: 8px 16px; margin-bottom: 18px; font-size: 12px; border: none; }
+                .back-btn:hover { background: #4b5563; }
 
-                .sheet-scroll-box { max-height: 400px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; margin-top: 20px; background: rgba(15, 23, 42, 0.5); }
-                table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
-                th, td { border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
-                th { background: rgba(15, 23, 42, 0.8); color: #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 700; }
+                .sheet-scroll-box { max-height: 380px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; margin-top: 15px; background: #030712; }
+                table { width: 100%; border-collapse: collapse; min-width: 650px; font-size: 13px; }
+                th, td { border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding: 12px 16px; text-align: left; white-space: nowrap; }
+                th { background: #0b0f19; color: #94a3b8; position: sticky; top: 0; z-index: 10; font-weight: 600; }
                 td { color: #e2e8f0; }
                 
-                .sheet-details { max-width: 320px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0, 0, 0, 0.3); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); color: #38bdf8; }
+                .sheet-details { max-width: 300px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: #111827; padding: 6px 10px; border-radius: 6px; color: #38bdf8; }
                 
-                .status-pending { color: #fbbf24; font-weight: 700; background: rgba(251, 191, 36, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
-                .status-success { color: #4ade80; font-weight: 700; background: rgba(74, 222, 128, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(74, 222, 128, 0.3); }
+                .status-pending { color: #fbbf24; background: rgba(251, 191, 36, 0.1); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(251, 191, 36, 0.2); }
+                .status-success { color: #4ade80; background: rgba(74, 222, 128, 0.1); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(74, 222, 128, 0.2); }
                 
-                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
-                .delete-btn:hover { transform: scale(1.05); }
+                .delete-btn { background: #ef4444; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }
+                .delete-btn:hover { background: #dc2626; }
 
-                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 30px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); max-width: 160px; }
+                .logout-btn { background: #ef4444; margin-top: 25px; max-width: 140px; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3); }
+                .logout-btn:hover { background: #dc2626; }
 
-                .checker-box { background: #0b0f19; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 25px; margin-top: 20px; }
-                .checker-title { text-align: center; font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 20px; letter-spacing: 0.5px; }
+                .checker-box { background: #030712; border: 1px solid rgba(255,255,255,0.06); border-radius: 14px; padding: 20px; margin-top: 15px; }
+                .checker-title { text-align: center; font-size: 18px; font-weight: 700; color: #38bdf8; margin-bottom: 15px; }
                 
-                .uid-result-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
-                .uid-text { font-family: monospace; font-weight: 600; font-size: 14px; }
-                .badge-live { color: #4ade80; background: rgba(74,222,128,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
-                .badge-die { color: #f87171; background: rgba(248,113,113,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
-                .badge-claimed { color: #cbd5e1; background: rgba(148,163,184,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+                .uid-result-row { display: flex; justify-content: space-between; align-items: center; background: #111827; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
+                .uid-text { font-family: monospace; font-weight: 600; font-size: 13px; }
+                .badge-claimed { color: #94a3b8; background: rgba(148,163,184,0.1); padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; }
                 
-                .claim-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
-                .claim-btn:hover { transform: scale(1.05); }
+                .claim-btn { background: #10b981; color: white; border: none; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700; }
+                .claim-btn:hover { background: #059669; }
 
-                .claim-all-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(245,158,11,0.3); transition: 0.2s; }
-                .claim-all-btn:hover { transform: translateY(-2px); }
-
-                @media (max-width: 600px) {
-                    body { padding: 10px; }
-                    .card { padding: 20px; border-radius: 20px; }
-                    .dashboard-container { padding: 20px !important; }
-                    .category-grid { grid-template-columns: 1fr; }
-                }
+                .claim-all-btn { background: #f59e0b; color: white; border: none; padding: 10px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 700; width: 100%; margin-bottom: 12px; box-shadow: 0 4px 15px rgba(245,158,11,0.2); }
+                .claim-all-btn:hover { background: #d97706; }
             </style>
         </head>
         <body>
@@ -157,7 +147,7 @@ app.get('/', (req, res) => {
                 <h2>Create Account</h2>
                 <p class="subtitle">Join our exclusive platform</p>
                 
-                <div style="display: flex; gap: 12px;">
+                <div style="display: flex; gap: 10px;">
                     <div>
                         <label>First Name</label>
                         <input type="text" id="reg-firstname" placeholder="John">
@@ -185,8 +175,8 @@ app.get('/', (req, res) => {
             <div class="card dashboard-container hidden" id="dashboard-card">
                 <div class="top-bar">
                     <div>
-                        <h2 style="text-align: left; margin: 0; font-size: 22px;">Welcome, <span id="user-display-name" style="color: #818cf8;"></span></h2>
-                        <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #38bdf8;"></span></p>
+                        <h2 style="text-align: left; margin: 0; font-size: 20px;">Welcome, <span id="user-display-name" style="color: #34d399;"></span></h2>
+                        <p class="subtitle" style="text-align: left; margin: 4px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #38bdf8;"></span></p>
                     </div>
                     <div class="balance-badge">
                         <span>💰 Balance:</span>
@@ -203,8 +193,8 @@ app.get('/', (req, res) => {
                 <!-- Submit IDs Section -->
                 <div id="user-section-submit">
                     <div id="category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
+                        <h3 style="margin: 0 0 4px 0; color: #f8fafc; font-size: 16px;">Select Category to Submit ID</h3>
+                        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 15px;">Choose a category below to proceed with your submission.</p>
                         
                         <div class="category-grid">
                             ${CATEGORIES.map(cat => `
@@ -218,15 +208,15 @@ app.get('/', (req, res) => {
 
                     <div id="category-form-view" class="hidden">
                         <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
-                        <h3 id="active-category-title" style="color: #818cf8; margin-bottom: 15px; font-size: 20px;"></h3>
+                        <h3 id="active-category-title" style="color: #34d399; margin-bottom: 12px; font-size: 18px;"></h3>
                         
-                        <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
+                        <div style="background: #030712; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06);">
                             <label>Submit Details / Cookies</label>
                             <textarea id="id-details" rows="3" placeholder="Paste details or cookies here..."></textarea>
-                            <button class="btn" onclick="submitId()" style="width: 180px;">Submit Now</button>
+                            <button class="btn" onclick="submitId()" style="width: 160px;">Submit Now</button>
                         </div>
 
-                        <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Submissions History</h4>
+                        <h4 style="margin: 25px 0 12px 0; color: #f8fafc; font-size: 15px;">Your Submissions History</h4>
                         <div class="sheet-scroll-box">
                             <table>
                                 <thead>
@@ -246,8 +236,8 @@ app.get('/', (req, res) => {
                 <!-- Report & UID Checker Section -->
                 <div id="user-section-report" class="hidden">
                     <div id="report-category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker & Claim</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Check live UIDs and claim your rewards.</p>
+                        <h3 style="margin: 0 0 4px 0; color: #f8fafc; font-size: 16px;">Select Category for UID Checker & Claim</h3>
+                        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 15px;">Check live UIDs and claim your rewards.</p>
                         
                         <div class="category-grid">
                             ${REPORT_CATEGORIES.map(cat => `
@@ -261,19 +251,19 @@ app.get('/', (req, res) => {
 
                     <div id="report-checker-view" class="hidden">
                         <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
-                        <h3 id="active-report-category-title" style="color: #38bdf8; margin-bottom: 15px; font-size: 20px;"></h3>
+                        <h3 id="active-report-category-title" style="color: #38bdf8; margin-bottom: 12px; font-size: 18px;"></h3>
 
                         <div class="checker-box">
                             <div class="checker-title">UID Scanner & Auto Claim Portal</div>
                             
                             <label>Paste UIDs (One UID per line)</label>
-                            <textarea id="checker-input-uids" rows="5" placeholder="61592634719749&#10;61592262077319"></textarea>
+                            <textarea id="checker-input-uids" rows="4" placeholder="61592634719749"></textarea>
                             
                             <button class="btn" onclick="runUidChecker()">START SCANNER</button>
 
-                            <div style="margin-top: 25px;">
-                                <div id="checker-output-box" style="min-height: 100px; max-height: 300px; overflow-y: auto;">
-                                    <div style="color: #64748b; text-align: center; padding: 30px;">No UIDs scanned yet.</div>
+                            <div style="margin-top: 20px;">
+                                <div id="checker-output-box" style="min-height: 80px; max-height: 250px; overflow-y: auto;">
+                                    <div style="color: #64748b; text-align: center; padding: 20px;">No UIDs scanned yet.</div>
                                 </div>
                             </div>
                         </div>
@@ -282,10 +272,10 @@ app.get('/', (req, res) => {
 
                 <!-- Withdraw Section -->
                 <div id="user-section-withdraw" class="hidden">
-                    <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Withdraw Request / Payment</h3>
-                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
+                    <h3 style="margin: 0 0 4px 0; color: #f8fafc; font-size: 16px;">Withdraw Request / Payment</h3>
+                    <p style="color: #94a3b8; font-size: 12px; margin-bottom: 15px;">Request a payout to your mobile banking account.</p>
 
-                    <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); max-width: 500px;">
+                    <div style="background: #030712; padding: 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); max-width: 480px;">
                         <label>Select Payment Method</label>
                         <select id="withdraw-method">
                             <option value="Bkash">Bkash</option>
@@ -302,7 +292,7 @@ app.get('/', (req, res) => {
                         <button class="btn" onclick="sendWithdrawRequest()">Send Request</button>
                     </div>
 
-                    <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Withdrawal History</h4>
+                    <h4 style="margin: 25px 0 12px 0; color: #f8fafc; font-size: 15px;">Your Withdrawal History</h4>
                     <div class="sheet-scroll-box">
                         <table>
                             <thead>
@@ -326,6 +316,18 @@ app.get('/', (req, res) => {
                 let currentUser = null;
                 let activeCategory = null;
                 let activeMode = 'submit';
+
+                // Check active session on load via localStorage
+                window.onload = function() {
+                    const savedUser = localStorage.getItem('voltx_user');
+                    if(savedUser) {
+                        currentUser = JSON.parse(savedUser);
+                        updateUserUI();
+                        document.getElementById('login-card').classList.add('hidden');
+                        document.getElementById('dashboard-card').classList.remove('hidden');
+                        switchUserTab('submit');
+                    }
+                };
 
                 function showRegister() {
                     document.getElementById('login-card').classList.add('hidden');
@@ -377,6 +379,7 @@ app.get('/', (req, res) => {
                     .then(data => {
                         if(data.success) {
                             currentUser = data.user;
+                            localStorage.setItem('voltx_user', JSON.stringify(currentUser));
                             updateUserUI();
                             document.getElementById('login-card').classList.add('hidden');
                             document.getElementById('dashboard-card').classList.remove('hidden');
@@ -400,6 +403,7 @@ app.get('/', (req, res) => {
                     .then(data => {
                         if(data.success) {
                             currentUser = data.user;
+                            localStorage.setItem('voltx_user', JSON.stringify(currentUser));
                             updateUserUI();
                         }
                     });
@@ -442,7 +446,7 @@ app.get('/', (req, res) => {
                         document.getElementById('report-category-selection-view').classList.add('hidden');
                         document.getElementById('report-checker-view').classList.remove('hidden');
                         document.getElementById('checker-input-uids').value = '';
-                        document.getElementById('checker-output-box').innerHTML = '<div style="color: #64748b; text-align: center; padding: 30px;">No UIDs scanned yet.</div>';
+                        document.getElementById('checker-output-box').innerHTML = '<div style="color: #64748b; text-align: center; padding: 20px;">No UIDs scanned yet.</div>';
                     }
                 }
 
@@ -486,7 +490,7 @@ app.get('/', (req, res) => {
                                 } else if(r.isLive) {
                                     badgeHtml = '<button class="claim-btn" onclick="claimUid(\\'' + r.uid + '\\')">CLAIM ৳' + r.prize + '</button>';
                                 } else {
-                                    badgeHtml = '<span class="badge-die">DIE</span>';
+                                    badgeHtml = '<span class="badge-claimed" style="color:#f87171; background:rgba(248,113,113,0.1);">DIE</span>';
                                 }
 
                                 outputBox.innerHTML += \`
@@ -564,7 +568,7 @@ app.get('/', (req, res) => {
                         let tbody = document.getElementById('user-subs-table');
                         tbody.innerHTML = '';
                         if(data.submissions.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 20px;">No submissions found.</td></tr>';
                             return;
                         }
                         data.submissions.forEach(s => {
@@ -581,9 +585,7 @@ app.get('/', (req, res) => {
                     fetch('/api/delete/' + id, { method: 'POST' })
                     .then(res => res.json())
                     .then(data => {
-                        if(data.success) {
-                            loadUserSubs();
-                        }
+                        if(data.success) loadUserSubs();
                     });
                 }
 
@@ -621,7 +623,7 @@ app.get('/', (req, res) => {
                         let tbody = document.getElementById('user-withdraw-table');
                         tbody.innerHTML = '';
                         if(data.withdrawals.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No withdrawal requests found.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">No withdrawal requests found.</td></tr>';
                             return;
                         }
                         data.withdrawals.forEach(w => {
@@ -634,6 +636,7 @@ app.get('/', (req, res) => {
                 }
 
                 function logout() {
+                    localStorage.removeItem('voltx_user');
                     currentUser = null;
                     document.getElementById('dashboard-card').classList.add('hidden');
                     document.getElementById('login-card').classList.remove('hidden');
@@ -652,58 +655,54 @@ app.get('/admin', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Premium Admin Dashboard</title>
+            <title>VoltX Portal - Admin Control</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
             <style>
                 * { box-sizing: border-box; }
                 body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
-                .card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 440px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-                h2 { text-align: center; color: #f8fafc; margin-bottom: 25px; font-weight: 700; font-size: 22px; }
-                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(3, 7, 18, 0.6); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
-                input:focus, textarea:focus { border-color: #10b981; background: rgba(3, 7, 18, 0.9); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
-                .btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-family: inherit; }
-                .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.6); }
+                .card { background: #111827; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 440px; padding: 35px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+                h2 { text-align: center; color: #f8fafc; margin-bottom: 20px; font-weight: 700; font-size: 20px; }
+                input, textarea { width: 100%; padding: 12px 16px; margin-bottom: 16px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px; font-size: 14px; background: #030712; color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
+                input:focus, textarea:focus { border-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+                .btn { background: #10b981; color: white; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3); font-family: inherit; }
+                .btn:hover { background: #059669; }
                 .hidden { display: none !important; }
 
-                .admin-container { max-width: 1350px !important; padding: 35px !important; border-radius: 24px; }
-                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
+                .admin-container { max-width: 1250px !important; padding: 30px !important; }
+                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
                 
-                .category-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
-                .tab-btn { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
-                .tab-btn.active { background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
+                .category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
+                .tab-btn { background: #1f2937; color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
+                .tab-btn.active { background: #10b981; color: white; border-color: transparent; }
 
-                .admin-sub-nav { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-                .sub-nav-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+                .admin-sub-nav { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+                .sub-nav-btn { background: #1f2937; border: 1px solid rgba(255,255,255,0.06); color: #94a3b8; padding: 7px 14px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; }
                 .sub-nav-btn.active { background: #3b82f6; color: white; border-color: transparent; }
 
-                .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-                .action-global-btn { background: #3b82f6; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; box-shadow: 0 4px 15px rgba(59,130,246,0.3); display: flex; align-items: center; gap: 6px; font-family: inherit; }
-                .action-global-btn:hover { background: #2563eb; transform: translateY(-2px); }
+                .header-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+                .action-global-btn { background: #3b82f6; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.3s; display: flex; align-items: center; gap: 5px; font-family: inherit; }
+                .action-global-btn:hover { background: #2563eb; }
                 
-                .clear-btn { background: #ef4444 !important; box-shadow: 0 4px 15px rgba(239,68,68,0.3) !important; }
+                .clear-btn { background: #ef4444 !important; }
                 .clear-btn:hover { background: #dc2626 !important; }
 
-                .sheet-scroll-box { max-height: 520px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: rgba(3, 7, 18, 0.4); }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 950px; background: transparent; }
-                th, td { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
-                th { background: rgba(3, 7, 18, 0.8); color: #cbd5e1; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
+                .sheet-scroll-box { max-height: 480px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; background: #030712; }
+                table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 850px; background: transparent; }
+                th, td { border-bottom: 1px solid rgba(255,255,255,0.05); padding: 12px 16px; text-align: left; white-space: nowrap; }
+                th { background: #0b0f19; color: #94a3b8; font-weight: 600; position: sticky; top: 0; z-index: 10; }
                 td { background: transparent; color: #cbd5e1; }
                 
-                .sheet-details { max-width: 300px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); color: #38bdf8; }
+                .sheet-details { max-width: 280px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: #111827; padding: 5px 8px; border-radius: 6px; color: #38bdf8; }
                 
-                .action-cell-flex { display: flex; align-items: center; gap: 8px; justify-content: center; }
-                .balance-input { width: 85px !important; padding: 6px 8px !important; margin-bottom: 0 !important; font-size: 13px !important; text-align: center; }
-                .received-btn { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
+                .action-cell-flex { display: flex; align-items: center; gap: 6px; justify-content: center; }
+                .balance-input { width: 75px !important; padding: 5px 6px !important; margin-bottom: 0 !important; font-size: 12px !important; text-align: center; }
+                .received-btn { background: #10b981; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; }
                 .received-btn:hover { background: #059669; }
-                .received-text { color: #4ade80; font-weight: bold; text-align: center; display: inline-block; background: rgba(74,222,128,0.15); padding: 6px 10px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(74,222,128,0.3); }
+                .received-text { color: #4ade80; font-weight: 700; background: rgba(74,222,128,0.1); padding: 4px 8px; border-radius: 6px; font-size: 11px; border: 1px solid rgba(74,222,128,0.2); }
 
-                .row-download-btn { background: #6366f1; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 6px; }
-
-                @media (max-width: 600px) {
-                    body { padding: 10px; }
-                    .card { padding: 20px; }
-                    .admin-container { padding: 15px !important; }
-                }
+                .row-download-btn { background: #6366f1; color: white; border: none; padding: 5px 8px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 6px; }
+                .delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; }
+                .delete-btn:hover { background: #dc2626; }
             </style>
         </head>
         <body>
@@ -718,7 +717,7 @@ app.get('/admin', (req, res) => {
             <!-- Admin Dashboard -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category & Report Control</h2>
+                    <h2 style="margin: 0; color: #f8fafc; font-size: 18px;">📊 Admin Panel - Category & Report Control</h2>
                     <div class="header-btns" id="admin-top-btns">
                         <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
                         <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab Data</button>
@@ -758,26 +757,26 @@ app.get('/admin', (req, res) => {
 
                 <!-- Report UIDs & Prize Management Box -->
                 <div id="admin-report-view" class="hidden">
-                    <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
-                        <h3 style="margin-top: 0; color: #38bdf8; font-size: 18px;" id="admin-report-title">Manage Report Box UIDs & Auto Prize</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Set the prize amount and add/append new live UIDs. Saved UIDs will stay in history below.</p>
+                    <div style="background: #030712; padding: 20px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06);">
+                        <h3 style="margin-top: 0; color: #38bdf8; font-size: 16px;" id="admin-report-title">Manage Report Box UIDs & Auto Prize</h3>
+                        <p style="color: #94a3b8; font-size: 12px; margin-bottom: 14px;">Set the prize amount and add/append new live UIDs. Saved UIDs will stay in history below.</p>
                         
                         <label>Category Prize Amount (BDT)</label>
                         <input type="number" id="admin-category-prize" placeholder="e.g. 50">
 
                         <label>Add New UIDs (One UID per line)</label>
-                        <textarea id="admin-report-textarea" rows="4" placeholder="Paste new UIDs here..."></textarea>
+                        <textarea id="admin-report-textarea" rows="3" placeholder="Paste new UIDs here..."></textarea>
                         
-                        <button class="btn" onclick="saveAdminReportAndPrize()" style="max-width: 220px; margin-bottom: 25px;">Save & Append UIDs</button>
+                        <button class="btn" onclick="saveAdminReportAndPrize()" style="max-width: 200px; margin-bottom: 20px;">Save & Append UIDs</button>
 
-                        <h4 style="color: #f8fafc; margin-bottom: 10px;">Saved UID History (<span id="saved-uids-count">0</span>)</h4>
-                        <div class="sheet-scroll-box" style="max-height: 250px;">
+                        <h4 style="color: #f8fafc; margin-bottom: 10px; font-size: 14px;">Saved UID History (<span id="saved-uids-count">0</span>)</h4>
+                        <div class="sheet-scroll-box" style="max-height: 220px;">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th style="width: 60px; text-align: center;">SL</th>
+                                        <th style="width: 50px; text-align: center;">SL</th>
                                         <th>UID</th>
-                                        <th style="text-align: center; width: 100px;">Action</th>
+                                        <th style="text-align: center; width: 90px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="admin-saved-uids-table"></tbody>
@@ -795,6 +794,16 @@ app.get('/admin', (req, res) => {
                 let activeAdminCategory = '${CATEGORIES[0].id}';
                 let activeAdminSubView = 'submissions';
 
+                // Prevent admin logout on refresh
+                window.onload = function() {
+                    const isAdminLoggedIn = localStorage.getItem('voltx_admin');
+                    if(isAdminLoggedIn === 'true') {
+                        document.getElementById('admin-login-card').classList.add('hidden');
+                        document.getElementById('admin-dashboard-card').classList.remove('hidden');
+                        loadAdminData();
+                    }
+                };
+
                 function adminLogin() {
                     const pass = document.getElementById('admin-pass').value;
                     
@@ -806,6 +815,7 @@ app.get('/admin', (req, res) => {
                     .then(res => res.json())
                     .then(data => {
                         if(data.success) {
+                            localStorage.setItem('voltx_admin', 'true');
                             document.getElementById('admin-login-card').classList.add('hidden');
                             document.getElementById('admin-dashboard-card').classList.remove('hidden');
                             loadAdminData();
@@ -877,7 +887,7 @@ app.get('/admin', (req, res) => {
                         theadRow.innerHTML = '<th>SL</th><th>Date & Time</th><th>Username</th><th>Method & Phone</th><th>Amount</th><th>Status / Action</th>';
                         
                         if(allWithdrawals.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 25px;">No payment requests found.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 20px;">No payment requests found.</td></tr>';
                             return;
                         }
 
@@ -896,7 +906,7 @@ app.get('/admin', (req, res) => {
                         let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
 
                         if(filtered.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 20px;">No submissions found.</td></tr>';
                             return;
                         }
 
@@ -923,7 +933,7 @@ app.get('/admin', (req, res) => {
                     tbody.innerHTML = '';
 
                     if(uidsList.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 20px;">No saved UIDs in history.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 15px;">No saved UIDs in history.</td></tr>';
                         return;
                     }
 
@@ -990,11 +1000,7 @@ app.get('/admin', (req, res) => {
                     })
                     .then(res => res.json())
                     .then(data => {
-                        if(data.success) {
-                            loadAdminData();
-                        } else {
-                            alert(data.message);
-                        }
+                        if(data.success) loadAdminData();
                     });
                 }
 
@@ -1003,9 +1009,7 @@ app.get('/admin', (req, res) => {
                     fetch('/api/admin/approve-withdraw/' + id, {method: 'POST'})
                     .then(res => res.json())
                     .then(data => {
-                        if(data.success) {
-                            loadAdminData();
-                        }
+                        if(data.success) loadAdminData();
                     });
                 }
 
@@ -1035,7 +1039,7 @@ app.get('/admin', (req, res) => {
                 function downloadCategoryCSV() {
                     if(activeAdminCategory === 'withdrawals') return alert('Cannot download withdrawals as category CSV.');
                     let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
-                    if(filtered.length === 0) return alert('No data available to download in this category!');
+                    if(filtered.length === 0) return alert('No data available to download!');
                     
                     let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\\r\\n";
                     filtered.forEach((s, index) => {
@@ -1065,9 +1069,7 @@ app.get('/admin', (req, res) => {
                     fetch('/api/admin/clear/' + activeAdminCategory, {method: 'POST'})
                     .then(res => res.json())
                     .then(data => {
-                        if(data.success) {
-                            loadAdminData();
-                        }
+                        if(data.success) loadAdminData();
                     });
                 }
             </script>
@@ -1199,7 +1201,6 @@ app.post('/api/user/claim-uid', (req, res) => {
     res.json({ success: true, message: `Successfully claimed ৳${prize} added to your balance!` });
 });
 
-// Claim All Live UIDs API
 app.post('/api/user/claim-all', (req, res) => {
     const { category, username } = req.body;
     const data = loadData();
@@ -1280,7 +1281,6 @@ app.post('/api/admin/save-report', (req, res) => {
     if(!data.categoryPrizes) data.categoryPrizes = {};
     
     let existingUids = data.adminReports[category] || [];
-    // Combine and keep unique UIDs
     let combinedUids = Array.from(new Set([...existingUids, ...newUids]));
 
     data.adminReports[category] = combinedUids;
@@ -1319,7 +1319,7 @@ app.post('/api/admin/update-submission', (req, res) => {
 
 app.post('/api/admin/approve-withdraw/:id', (req, res) => {
     const { id } = req.params;
-    const data = loadData();
+    const data.loadData();
     let w = data.withdrawals.find(item => item.id === id);
     if(w) {
         w.status = 'success';
