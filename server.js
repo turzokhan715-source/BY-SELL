@@ -12,10 +12,11 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 function loadData() {
     if (!fs.existsSync(DATA_FILE)) {
-        return { users: [], submissions: [], withdrawals: [] };
+        return { users: [], submissions: [], withdrawals: [], adminReports: {} };
     }
     let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (!data.withdrawals) data.withdrawals = [];
+    if (!data.adminReports) data.adminReports = {};
     return data;
 }
 
@@ -69,7 +70,7 @@ app.get('/', (req, res) => {
                 .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
                 .balance-amount { font-size: 20px; font-weight: 800; color: #4ade80; }
 
-                .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; }
+                .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
                 .nav-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
                 .nav-tab-btn.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
 
@@ -90,8 +91,6 @@ app.get('/', (req, res) => {
                 td { color: #e2e8f0; }
                 
                 .sheet-details { max-width: 320px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0, 0, 0, 0.3); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); color: #38bdf8; }
-                .sheet-details::-webkit-scrollbar { height: 6px; }
-                .sheet-details::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
                 
                 .status-pending { color: #fbbf24; font-weight: 700; background: rgba(251, 191, 36, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
                 .status-success { color: #4ade80; font-weight: 700; background: rgba(74, 222, 128, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(74, 222, 128, 0.3); }
@@ -101,11 +100,24 @@ app.get('/', (req, res) => {
 
                 .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 30px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); max-width: 160px; }
 
+                /* Bulk UID Checker Pro UI Style */
+                .checker-box { background: #0b0f19; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 25px; margin-top: 20px; }
+                .checker-title { text-align: center; font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 20px; letter-spacing: 0.5px; }
+                .checker-output { background: #030712; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; min-height: 180px; max-height: 280px; overflow-y: auto; font-family: monospace; font-size: 14px; margin-bottom: 20px; }
+                .output-live { color: #4ade80; margin-bottom: 6px; font-weight: 600; }
+                .output-die { color: #f87171; margin-bottom: 6px; font-weight: 600; }
+                
+                .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
+                .stat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 15px; text-align: center; }
+                .stat-num { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 5px; }
+                .stat-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700; }
+
                 @media (max-width: 600px) {
                     body { padding: 10px; }
                     .card { padding: 20px; border-radius: 20px; }
                     .dashboard-container { padding: 20px !important; }
                     .category-grid { grid-template-columns: 1fr; }
+                    .stats-grid { grid-template-columns: 1fr; }
                 }
             </style>
         </head>
@@ -115,7 +127,7 @@ app.get('/', (req, res) => {
             <div class="card" id="login-card">
                 <div class="icon-box">🔐</div>
                 <h2>Welcome Back</h2>
-                <p class="subtitle">Secure ID Submission Portal</p>
+                <p class="subtitle">Secure ID Submission & Report Portal</p>
                 
                 <label>Email Address</label>
                 <input type="email" id="login-email" placeholder="name@example.com">
@@ -172,9 +184,11 @@ app.get('/', (req, res) => {
 
                 <div class="user-nav-tabs">
                     <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
+                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')">🔍 UID Checker & Report</button>
                     <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
                 </div>
 
+                <!-- Submit IDs Section -->
                 <div id="user-section-submit">
                     <div id="category-selection-view">
                         <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
@@ -182,7 +196,7 @@ app.get('/', (req, res) => {
                         
                         <div class="category-grid">
                             ${CATEGORIES.map(cat => `
-                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}')">
+                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'submit')">
                                     <span class="cat-icon">${cat.icon}</span>
                                     <div class="cat-title">${cat.name}</div>
                                 </div>
@@ -217,6 +231,59 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
+                <!-- Report & UID Checker Section -->
+                <div id="user-section-report" class="hidden">
+                    <div id="report-category-selection-view">
+                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Match your UIDs with admin report box.</p>
+                        
+                        <div class="category-grid">
+                            ${CATEGORIES.map(cat => `
+                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'report')">
+                                    <span class="cat-icon">${cat.icon}</span>
+                                    <div class="cat-title">${cat.name}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div id="report-checker-view" class="hidden">
+                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
+                        <h3 id="active-report-category-title" style="color: #38bdf8; margin-bottom: 15px; font-size: 20px;"></h3>
+
+                        <div class="checker-box">
+                            <div class="checker-title">Bulk UID Checker Pro</div>
+                            
+                            <label>Paste UIDs (One UID per line)</label>
+                            <textarea id="checker-input-uids" rows="5" placeholder="61592634719749&#10;61592262077319"></textarea>
+                            
+                            <button class="btn" onclick="runUidChecker()">START SCANNER</button>
+
+                            <div style="margin-top: 25px;">
+                                <div class="checker-output" id="checker-output-box">
+                                    <div style="color: #64748b; text-align: center; padding: 40px;">No UIDs scanned yet. Enter UIDs above and click start scanner.</div>
+                                </div>
+
+                                <div class="stats-grid">
+                                    <div class="stat-card">
+                                        <div class="stat-num" id="stat-total">0</div>
+                                        <div class="stat-label">Total</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-num" id="stat-live" style="color: #4ade80;">0%</div>
+                                        <div class="stat-label" style="color: #4ade80;">Live</div>
+                                    </div>
+                                    <div class="stat-card">
+                                        <div class="stat-num" id="stat-die" style="color: #f87171;">0%</div>
+                                        <div class="stat-label" style="color: #f87171;">Die</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Withdraw Section -->
                 <div id="user-section-withdraw" class="hidden">
                     <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Withdraw Request / Payment</h3>
                     <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
@@ -261,6 +328,7 @@ app.get('/', (req, res) => {
             <script>
                 let currentUser = null;
                 let activeCategory = null;
+                let activeMode = 'submit'; // 'submit' or 'report'
 
                 function showRegister() {
                     document.getElementById('login-card').classList.add('hidden');
@@ -341,33 +409,100 @@ app.get('/', (req, res) => {
                 }
 
                 function switchUserTab(tab) {
+                    document.getElementById('tab-btn-submit').classList.remove('active');
+                    document.getElementById('tab-btn-report').classList.remove('active');
+                    document.getElementById('tab-btn-withdraw').classList.remove('active');
+
+                    document.getElementById('user-section-submit').classList.add('hidden');
+                    document.getElementById('user-section-report').classList.add('hidden');
+                    document.getElementById('user-section-withdraw').classList.add('hidden');
+
                     if(tab === 'submit') {
                         document.getElementById('tab-btn-submit').classList.add('active');
-                        document.getElementById('tab-btn-withdraw').classList.remove('active');
                         document.getElementById('user-section-submit').classList.remove('hidden');
-                        document.getElementById('user-section-withdraw').classList.add('hidden');
+                        backToCategories();
+                    } else if(tab === 'report') {
+                        document.getElementById('tab-btn-report').classList.add('active');
+                        document.getElementById('user-section-report').classList.remove('hidden');
+                        backToCategories();
                     } else {
                         document.getElementById('tab-btn-withdraw').classList.add('active');
-                        document.getElementById('tab-btn-submit').classList.remove('active');
                         document.getElementById('user-section-withdraw').classList.remove('hidden');
-                        document.getElementById('user-section-submit').classList.add('hidden');
                         loadUserWithdraws();
                     }
                 }
 
-                function openCategory(catId, catName) {
+                function openCategory(catId, catName, mode) {
                     activeCategory = catId;
-                    document.getElementById('active-category-title').innerText = catName;
-                    document.getElementById('category-selection-view').classList.add('hidden');
-                    document.getElementById('category-form-view').classList.remove('hidden');
-                    loadUserSubs();
+                    activeMode = mode;
+                    if(mode === 'submit') {
+                        document.getElementById('active-category-title').innerText = catName;
+                        document.getElementById('category-selection-view').classList.add('hidden');
+                        document.getElementById('category-form-view').classList.remove('hidden');
+                        loadUserSubs();
+                    } else {
+                        document.getElementById('active-report-category-title').innerText = catName + ' - Report Checker';
+                        document.getElementById('report-category-selection-view').classList.add('hidden');
+                        document.getElementById('report-checker-view').classList.remove('hidden');
+                        document.getElementById('checker-input-uids').value = '';
+                        document.getElementById('checker-output-box').innerHTML = '<div style="color: #64748b; text-align: center; padding: 40px;">No UIDs scanned yet. Enter UIDs above and click start scanner.</div>';
+                        document.getElementById('stat-total').innerText = '0';
+                        document.getElementById('stat-live').innerText = '0%';
+                        document.getElementById('stat-die').innerText = '0%';
+                    }
                 }
 
                 function backToCategories() {
                     activeCategory = null;
                     document.getElementById('category-form-view').classList.add('hidden');
                     document.getElementById('category-selection-view').classList.remove('hidden');
+                    document.getElementById('report-checker-view').classList.add('hidden');
+                    document.getElementById('report-category-selection-view').classList.remove('hidden');
                     refreshUserData();
+                }
+
+                function runUidChecker() {
+                    const text = document.getElementById('checker-input-uids').value.trim();
+                    if(!text) return alert('Please enter UIDs to check!');
+
+                    const userUids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
+
+                    fetch('/api/user/check-uids', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ category: activeCategory, uids: userUids })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            const results = data.results; // array of {uid, isLive}
+                            let outputBox = document.getElementById('checker-output-box');
+                            outputBox.innerHTML = '';
+
+                            let liveCount = 0;
+                            let dieCount = 0;
+                            let total = results.length;
+
+                            results.forEach(r => {
+                                if(r.isLive) {
+                                    liveCount++;
+                                    outputBox.innerHTML += '<div class="output-live">[LIVE] ID: ' + r.uid + '</div>';
+                                } else {
+                                    dieCount++;
+                                    outputBox.innerHTML += '<div class="output-die">[DIE] ID: ' + r.uid + '</div>';
+                                }
+                            });
+
+                            let livePercent = total > 0 ? Math.round((liveCount / total) * 100) : 0;
+                            let diePercent = total > 0 ? Math.round((dieCount / total) * 100) : 0;
+
+                            document.getElementById('stat-total').innerText = total;
+                            document.getElementById('stat-live').innerText = livePercent + '%\\nLIVE';
+                            document.getElementById('stat-die').innerText = diePercent + '%\\nDIE';
+                        } else {
+                            alert(data.message);
+                        }
+                    });
                 }
 
                 function submitId() {
@@ -491,8 +626,8 @@ app.get('/admin', (req, res) => {
                 body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
                 .card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 440px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
                 h2 { text-align: center; color: #f8fafc; margin-bottom: 25px; font-weight: 700; font-size: 22px; }
-                input { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(3, 7, 18, 0.6); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
-                input:focus { border-color: #10b981; background: rgba(3, 7, 18, 0.9); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(3, 7, 18, 0.6); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
+                input:focus, textarea:focus { border-color: #10b981; background: rgba(3, 7, 18, 0.9); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
                 .btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-family: inherit; }
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.6); }
                 .hidden { display: none !important; }
@@ -503,6 +638,10 @@ app.get('/admin', (req, res) => {
                 .category-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
                 .tab-btn { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
                 .tab-btn.active { background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
+
+                .admin-sub-nav { display: flex; gap: 12px; margin-bottom: 20px; }
+                .sub-nav-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+                .sub-nav-btn.active { background: #3b82f6; color: white; border-color: transparent; }
 
                 .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
                 .action-global-btn { background: #3b82f6; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; box-shadow: 0 4px 15px rgba(59,130,246,0.3); display: flex; align-items: center; gap: 6px; font-family: inherit; }
@@ -518,8 +657,6 @@ app.get('/admin', (req, res) => {
                 td { background: transparent; color: #cbd5e1; }
                 
                 .sheet-details { max-width: 300px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); color: #38bdf8; }
-                .sheet-details::-webkit-scrollbar { height: 5px; }
-                .sheet-details::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
                 
                 .action-cell-flex { display: flex; align-items: center; gap: 8px; justify-content: center; }
                 .balance-input { width: 85px !important; padding: 6px 8px !important; margin-bottom: 0 !important; font-size: 13px !important; text-align: center; }
@@ -548,8 +685,8 @@ app.get('/admin', (req, res) => {
             <!-- Admin Dashboard -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category & Payout Control</h2>
-                    <div class="header-btns">
+                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category & Report Control</h2>
+                    <div class="header-btns" id="admin-top-btns">
                         <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
                         <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab Data</button>
                     </div>
@@ -562,31 +699,52 @@ app.get('/admin', (req, res) => {
                     <button class="tab-btn" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
                 </div>
 
-                <div class="sheet-scroll-box">
-                    <table>
-                        <thead>
-                            <tr id="table-header-row">
-                                <th>SL</th>
-                                <th>Date & Time</th>
-                                <th>Telegram Username</th>
-                                <th>Details / Cookies</th>
-                                <th>Action & Add Balance</th>
-                            </tr>
-                        </thead>
-                        <tbody id="admin-subs-table"></tbody>
-                    </table>
+                <!-- Admin Sub View Toggle: Submissions vs Report Box Management -->
+                <div class="admin-sub-nav" id="admin-sub-nav-container">
+                    <button class="sub-nav-btn active" id="sub-view-subs" onclick="switchAdminSubView('submissions')">📥 User Submissions</button>
+                    <button class="sub-nav-btn" id="sub-view-report" onclick="switchAdminSubView('report')">⚙️ Manage Report UIDs</button>
+                </div>
+
+                <!-- Submissions View Box -->
+                <div id="admin-submissions-view">
+                    <div class="sheet-scroll-box">
+                        <table>
+                            <thead>
+                                <tr id="table-header-row">
+                                    <th>SL</th>
+                                    <th>Date & Time</th>
+                                    <th>Telegram Username</th>
+                                    <th>Details / Cookies</th>
+                                    <th>Action & Add Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-subs-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Report UIDs Management Box -->
+                <div id="admin-report-view" class="hidden">
+                    <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
+                        <h3 style="margin-top: 0; color: #38bdf8; font-size: 18px;" id="admin-report-title">Manage Report Box UIDs</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Enter valid UIDs for this category (one UID per line). Users checking UIDs here will get green for matching UIDs and red for non-matching UIDs.</p>
+                        
+                        <textarea id="admin-report-textarea" rows="8" placeholder="Paste UIDs here..."></textarea>
+                        <button class="btn" onclick="saveAdminReportUids()" style="max-width: 220px;">Save Report UIDs</button>
+                    </div>
                 </div>
             </div>
 
             <script>
                 let allSubmissions = [];
                 let allWithdrawals = [];
+                let adminReports = {};
                 let activeAdminCategory = '${CATEGORIES[0].id}';
+                let activeAdminSubView = 'submissions'; // 'submissions' or 'report'
 
                 function adminLogin() {
                     const pass = document.getElementById('admin-pass').value;
                     
-                    // সার্ভারে পাসওয়ার্ড ভ্যালিডেশনের জন্য ব্যাকএেন্ড এপিআই কল যুক্ত করা হয়েছে
                     fetch('/api/admin/login', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
@@ -608,7 +766,38 @@ app.get('/admin', (req, res) => {
                     activeAdminCategory = catId;
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     btnElement.classList.add('active');
+
+                    if(catId === 'withdrawals') {
+                        document.getElementById('admin-sub-nav-container').classList.add('hidden');
+                        document.getElementById('admin-top-btns').classList.add('hidden');
+                        switchAdminSubView('submissions');
+                    } else {
+                        document.getElementById('admin-sub-nav-container').classList.remove('hidden');
+                        document.getElementById('admin-top-btns').classList.remove('hidden');
+                    }
                     renderAdminTable();
+                }
+
+                function switchAdminSubView(view) {
+                    activeAdminSubView = view;
+                    document.getElementById('sub-view-subs').classList.remove('active');
+                    document.getElementById('sub-view-report').classList.remove('active');
+
+                    if(view === 'submissions') {
+                        document.getElementById('sub-view-subs').classList.add('active');
+                        document.getElementById('admin-submissions-view').classList.remove('hidden');
+                        document.getElementById('admin-report-view').classList.add('hidden');
+                        document.getElementById('admin-top-btns').classList.remove('hidden');
+                    } else {
+                        document.getElementById('sub-view-report').classList.add('active');
+                        document.getElementById('admin-submissions-view').classList.add('hidden');
+                        document.getElementById('admin-report-view').classList.remove('hidden');
+                        document.getElementById('admin-top-btns').classList.add('hidden');
+                        
+                        // Load current category report UIDs into textarea
+                        let currentUids = adminReports[activeAdminCategory] || [];
+                        document.getElementById('admin-report-textarea').value = currentUids.join('\\n');
+                    }
                 }
 
                 function loadAdminData() {
@@ -617,6 +806,7 @@ app.get('/admin', (req, res) => {
                     .then(data => {
                         allSubmissions = data.submissions;
                         allWithdrawals = data.withdrawals;
+                        adminReports = data.adminReports || {};
                         renderAdminTable();
                     });
                 }
@@ -666,7 +856,33 @@ app.get('/admin', (req, res) => {
                             
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                         });
+
+                        // Also update textarea if in report view
+                        if(activeAdminSubView === 'report') {
+                            let currentUids = adminReports[activeAdminCategory] || [];
+                            document.getElementById('admin-report-textarea').value = currentUids.join('\\n');
+                        }
                     }
+                }
+
+                function saveAdminReportUids() {
+                    const text = document.getElementById('admin-report-textarea').value;
+                    const uids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
+
+                    fetch('/api/admin/save-report', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ category: activeAdminCategory, uids })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            adminReports = data.adminReports;
+                            alert('Report UIDs saved successfully!');
+                        } else {
+                            alert('Failed to save!');
+                        }
+                    });
                 }
 
                 function markReceivedAndAddBal(id, username) {
@@ -793,7 +1009,6 @@ app.post('/api/login', (req, res) => {
     res.json({ success: true, user });
 });
 
-// নতুন অ্যাডমিন লগইন রাউট যুক্ত করা হয়েছে
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
     if(password === '@MYPANEL') {
@@ -844,6 +1059,21 @@ app.post('/api/delete/:id', (req, res) => {
     res.json({ success: true });
 });
 
+// UID Checker API for Users
+app.post('/api/user/check-uids', (req, res) => {
+    const { category, uids } = req.body;
+    const data = loadData();
+    const adminUids = (data.adminReports && data.adminReports[category]) || [];
+
+    // Check each user UID against adminUids
+    const results = uids.map(uid => {
+        const isLive = adminUids.includes(uid);
+        return { uid, isLive };
+    });
+
+    res.json({ success: true, results });
+});
+
 app.post('/api/withdraw', (req, res) => {
     const { username, method, phone, amount } = req.body;
     const data = loadData();
@@ -879,7 +1109,21 @@ app.get('/api/user/withdrawals/:username', (req, res) => {
 
 app.get('/api/admin/data', (req, res) => {
     const data = loadData();
-    res.json({ success: true, submissions: data.submissions, withdrawals: data.withdrawals });
+    res.json({ 
+        success: true, 
+        submissions: data.submissions, 
+        withdrawals: data.withdrawals,
+        adminReports: data.adminReports || {}
+    });
+});
+
+app.post('/api/admin/save-report', (req, res) => {
+    const { category, uids } = req.body;
+    const data = loadData();
+    if(!data.adminReports) data.adminReports = {};
+    data.adminReports[category] = uids;
+    saveData(data);
+    res.json({ success: true, adminReports: data.adminReports });
 });
 
 app.post('/api/admin/update-submission', (req, res) => {
