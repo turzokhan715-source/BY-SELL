@@ -1,1371 +1,478 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-
-const app = express();
-const PORT = process.env.PORT || 10000;
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-const DATA_FILE = path.join(__dirname, 'data.json');
-
-function loadData() {
-    if (!fs.existsSync(DATA_FILE)) {
-        return { users: [], submissions: [], withdrawals: [], adminReports: {}, prices: {}, claimedUids: {} };
-    }
-    let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    if (!data.withdrawals) data.withdrawals = [];
-    if (!data.adminReports) data.adminReports = {};
-    if (!data.prices) data.prices = {};
-    if (!data.claimedUids) data.claimedUids = {}; // কোন কোন UID ক্লেম করা হয়েছে তা ট্র্যাক করার জন্য
-    return data;
-}
-
-function saveData(data) {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
-// ক্যাটেগরি লিস্ট (ডিফল্ট প্রাইসসহ)
-const CATEGORIES = [
-    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', defaultPrice: 10 },
-    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)', defaultPrice: 15 },
-    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)', defaultPrice: 20 },
-    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)', defaultPrice: 12 }
-];
-
-// ==================== ১. ইউজার প্যানেল ====================
-app.get('/', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="bn">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Premium User Panel - ID & Auto Payment Portal</title>
-            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-            <style>
-                * { box-sizing: border-box; }
-                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
-                
-                .card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 540px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-                .icon-box { width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 16px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); }
-                
-                h2 { text-align: center; color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 24px; }
-                p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
-                label { display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
-                
-                input, textarea, select { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(15, 23, 42, 0.6); color: #fff; outline: none; transition: all 0.3s ease; font-family: inherit; }
-                input:focus, textarea:focus, select:focus { border-color: #6366f1; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
-                select option { background: #0f172a; color: #fff; }
-                
-                .btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); font-family: inherit; }
-                .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.6); }
-                
-                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #818cf8; font-weight: 600; cursor: pointer; letter-spacing: 0.5px; }
-                .switch-text:hover { text-decoration: underline; }
-                .hidden { display: none !important; }
-                
-                .dashboard-container { max-width: 950px !important; padding: 35px !important; }
-                
-                .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
-                .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
-                .balance-amount { font-size: 20px; font-weight: 800; color: #4ade80; }
-
-                .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-                .nav-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
-                .nav-tab-btn.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
-
-                .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-top: 25px; }
-                .cat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
-                .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
-                .cat-card:hover { transform: translateY(-6px); border-color: rgba(99, 102, 241, 0.5); background: rgba(30, 41, 59, 0.8); box-shadow: 0 20px 40px rgba(99,102,241,0.2); }
-                .cat-icon { font-size: 40px; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
-                .cat-title { font-weight: 700; color: #f1f5f9; font-size: 15px; }
-                .cat-price-badge { margin-top: 10px; background: rgba(16, 185, 129, 0.15); color: #4ade80; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; border: 1px solid rgba(16, 185, 129, 0.3); }
-
-                .back-btn { background: rgba(255, 255, 255, 0.1); width: auto; padding: 10px 20px; margin-bottom: 20px; font-size: 13px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.1); }
-                .back-btn:hover { background: rgba(255, 255, 255, 0.2); transform: none; }
-
-                .sheet-scroll-box { max-height: 400px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; margin-top: 20px; background: rgba(15, 23, 42, 0.5); }
-                table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
-                th, td { border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
-                th { background: rgba(15, 23, 42, 0.8); color: #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 700; }
-                td { color: #e2e8f0; }
-                
-                .sheet-details { max-width: 320px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0, 0, 0, 0.3); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); color: #38bdf8; }
-                
-                .status-pending { color: #fbbf24; font-weight: 700; background: rgba(251, 191, 36, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
-                .status-success { color: #4ade80; font-weight: 700; background: rgba(74, 222, 128, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(74, 222, 128, 0.3); }
-                
-                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
-                .delete-btn:hover { transform: scale(1.05); }
-
-                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 30px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); max-width: 160px; }
-
-                /* Bulk UID Checker Pro UI Style */
-                .checker-box { background: #0b0f19; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 25px; margin-top: 20px; }
-                .checker-title { text-align: center; font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 20px; letter-spacing: 0.5px; }
-                .checker-output { background: #030712; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; min-height: 180px; max-height: 280px; overflow-y: auto; font-family: monospace; font-size: 14px; margin-bottom: 20px; }
-                .output-live { color: #4ade80; margin-bottom: 6px; font-weight: 600; }
-                .output-die { color: #f87171; margin-bottom: 6px; font-weight: 600; }
-                
-                .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; }
-                .stat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 15px; text-align: center; }
-                .stat-num { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 5px; }
-                .stat-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700; }
-
-                .claim-box { margin-top: 20px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 14px; padding: 20px; text-align: center; display: none; }
-                .claim-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px 25px; border-radius: 12px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 10px 25px rgba(16,185,129,0.4); width: 100%; transition: 0.3s; }
-                .claim-btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16,185,129,0.6); }
-
-                @media (max-width: 600px) {
-                    body { padding: 10px; }
-                    .card { padding: 20px; border-radius: 20px; }
-                    .dashboard-container { padding: 20px !important; }
-                    .category-grid { grid-template-columns: 1fr; }
-                    .stats-grid { grid-template-columns: 1fr; }
-                }
-            </style>
-        </head>
-        <body>
-
-            <!-- Login View -->
-            <div class="card" id="login-card">
-                <div class="icon-box">🔐</div>
-                <h2>Welcome Back</h2>
-                <p class="subtitle">Secure ID Submission & Report Portal</p>
-                
-                <label>Email Address</label>
-                <input type="email" id="login-email" placeholder="name@example.com">
-                
-                <label>Password</label>
-                <input type="password" id="login-pass" placeholder="••••••••">
-                
-                <button class="btn" onclick="loginUser()">LOGIN TO PORTAL</button>
-                <div class="switch-text" onclick="showRegister()">Don't have an account? Register Now</div>
-            </div>
-
-            <!-- Register View -->
-            <div class="card hidden" id="register-card">
-                <div class="icon-box">⚡</div>
-                <h2>Create Account</h2>
-                <p class="subtitle">Join our exclusive platform</p>
-                
-                <div style="display: flex; gap: 12px;">
-                    <div>
-                        <label>First Name</label>
-                        <input type="text" id="reg-firstname" placeholder="John">
-                    </div>
-                    <div>
-                        <label>Last Name</label>
-                        <input type="text" id="reg-lastname" placeholder="Doe">
-                    </div>
-                </div>
-
-                <label>Telegram Username</label>
-                <input type="text" id="reg-username" placeholder="@username">
-
-                <label>Email Address</label>
-                <input type="email" id="reg-email" placeholder="name@example.com">
-
-                <label>Password</label>
-                <input type="password" id="reg-pass" placeholder="••••••••">
-
-                <button class="btn" onclick="registerUser()">REGISTER ACCOUNT</button>
-                <div class="switch-text" onclick="showLogin()">Already have an account? Login</div>
-            </div>
-
-            <!-- User Dashboard -->
-            <div class="card dashboard-container hidden" id="dashboard-card">
-                <div class="top-bar">
-                    <div>
-                        <h2 style="text-align: left; margin: 0; font-size: 22px;">Welcome, <span id="user-display-name" style="color: #818cf8;"></span></h2>
-                        <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #38bdf8;"></span></p>
-                    </div>
-                    <div class="balance-badge">
-                        <span>💰 Balance:</span>
-                        <span class="balance-amount" id="user-balance-display">৳0.00</span>
-                    </div>
-                </div>
-
-                <div class="user-nav-tabs">
-                    <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
-                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')">🔍 UID Checker & Auto Claim</button>
-                    <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
-                </div>
-
-                <!-- Submit IDs Section -->
-                <div id="user-section-submit">
-                    <div id="category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
-                        
-                        <div class="category-grid" id="user-submit-cat-grid">
-                            <!-- Dynamic populated with prices -->
-                        </div>
-                    </div>
-
-                    <div id="category-form-view" class="hidden">
-                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
-                        <h3 id="active-category-title" style="color: #818cf8; margin-bottom: 15px; font-size: 20px;"></h3>
-                        
-                        <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
-                            <label>Submit Details / Cookies</label>
-                            <textarea id="id-details" rows="3" placeholder="Paste details or cookies here..."></textarea>
-                            <button class="btn" onclick="submitId()" style="width: 180px;">Submit Now</button>
-                        </div>
-
-                        <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Submissions History</h4>
-                        <div class="sheet-scroll-box">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Date & Time</th>
-                                        <th>Details</th>
-                                        <th style="text-align: center;">Status</th>
-                                        <th style="text-align: center;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="user-subs-table"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Report & UID Checker Section -->
-                <div id="user-section-report" class="hidden">
-                    <div id="report-category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker & Auto Claim</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Match your UIDs and claim instant balance for live IDs.</p>
-                        
-                        <div class="category-grid" id="user-report-cat-grid">
-                            <!-- Dynamic populated with prices -->
-                        </div>
-                    </div>
-
-                    <div id="report-checker-view" class="hidden">
-                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
-                        <h3 id="active-report-category-title" style="color: #38bdf8; margin-bottom: 15px; font-size: 20px;"></h3>
-
-                        <div class="checker-box">
-                            <div class="checker-title">Bulk UID Checker Pro</div>
-                            
-                            <label>Paste UIDs (One UID per line)</label>
-                            <textarea id="checker-input-uids" rows="5" placeholder="61592634719749&#10;61592262077319"></textarea>
-                            
-                            <button class="btn" onclick="runUidChecker()">START SCANNER</button>
-
-                            <div style="margin-top: 25px;">
-                                <div class="checker-output" id="checker-output-box">
-                                    <div style="color: #64748b; text-align: center; padding: 40px;">No UIDs scanned yet. Enter UIDs above and click start scanner.</div>
-                                </div>
-
-                                <div class="stats-grid">
-                                    <div class="stat-card">
-                                        <div class="stat-num" id="stat-total">0</div>
-                                        <div class="stat-label">Total</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-num" id="stat-live" style="color: #4ade80;">0%</div>
-                                        <div class="stat-label" style="color: #4ade80;">Live</div>
-                                    </div>
-                                    <div class="stat-card">
-                                        <div class="stat-num" id="stat-die" style="color: #f87171;">0%</div>
-                                        <div class="stat-label" style="color: #f87171;">Die</div>
-                                    </div>
-                                </div>
-
-                                <!-- Claim Section Box -->
-                                <div class="claim-box" id="claim-section-box">
-                                    <p style="margin: 0 0 12px 0; font-weight: 700; font-size: 15px; color: #34d399;" id="claimable-text">You have earned ৳0.00 from live UIDs!</p>
-                                    <button class="claim-btn" onclick="claimLiveUids()">🎁 CLAIM REWARD TO BALANCE</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Withdraw Section -->
-                <div id="user-section-withdraw" class="hidden">
-                    <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Withdraw Request / Payment</h3>
-                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
-
-                    <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); max-width: 500px;">
-                        <label>Select Payment Method</label>
-                        <select id="withdraw-method">
-                            <option value="Bkash">Bkash</option>
-                            <option value="Nagad">Nagad</option>
-                            <option value="Rocket">Rocket</option>
-                        </select>
-
-                        <label>Phone Number</label>
-                        <input type="text" id="withdraw-phone" placeholder="017xxxxxxxx">
-
-                        <label>Amount (BDT)</label>
-                        <input type="number" id="withdraw-amount" placeholder="0.00">
-
-                        <button class="btn" onclick="sendWithdrawRequest()">Send Request</button>
-                    </div>
-
-                    <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Withdrawal History</h4>
-                    <div class="sheet-scroll-box">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Date & Time</th>
-                                    <th>Method</th>
-                                    <th>Phone</th>
-                                    <th>Amount</th>
-                                    <th style="text-align: center;">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody id="user-withdraw-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <button class="btn logout-btn" onclick="logout()">Logout</button>
-            </div>
-
-            <script>
-                let currentUser = null;
-                let activeCategory = null;
-                let activeMode = 'submit';
-                let currentLiveClaimableUids = [];
-                let categoryPrices = {};
-
-                // Check local session on load
-                window.onload = function() {
-                    const savedUser = localStorage.getItem('portal_user');
-                    if(savedUser) {
-                        currentUser = JSON.parse(savedUser);
-                        fetchPortalDataAndInit();
-                    }
-                };
-
-                function fetchPortalDataAndInit() {
-                    fetch('/api/portal-init')
-                    .then(res => res.json())
-                    .then(data => {
-                        categoryPrices = data.prices || {};
-                        renderCategoryGrids();
-                        if(currentUser) {
-                            refreshUserDataSilent();
-                            document.getElementById('login-card').classList.add('hidden');
-                            document.getElementById('dashboard-card').classList.remove('hidden');
-                        }
-                    });
-                }
-
-                function renderCategoryGrids() {
-                    const categoriesData = [
-                        { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)', defaultPrice: 10 },
-                        { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)', defaultPrice: 15 },
-                        { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)', defaultPrice: 20 },
-                        { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)', defaultPrice: 12 }
-                    ];
-
-                    let submitHtml = '';
-                    let reportHtml = '';
-
-                    categoriesData.forEach(cat => {
-                        let price = categoryPrices[cat.id] !== undefined ? categoryPrices[cat.id] : cat.defaultPrice;
-                        let cardContent = \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', '\${thisMode || 'submit'}')">
-                                <span class="cat-icon">\${cat.icon}</span>
-                                <div class="cat-title">\${cat.name}</div>
-                                <div class="cat-price-badge">Price: ৳\${price} / ID</div>
-                            </div>
-                        \`;
-                        // We generate for both grids with correct mode function calls
-                        submitHtml += \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'submit')">
-                                <span class="cat-icon">\${cat.icon}</span>
-                                <div class="cat-title">\${cat.name}</div>
-                                <div class="cat-price-badge">Price: ৳\${price} / ID</div>
-                            </div>
-                        \`;
-                        reportHtml += \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'report')">
-                                <span class="cat-icon">\${cat.icon}</span>
-                                <div class="cat-title">\${cat.name}</div>
-                                <div class="cat-price-badge">Price: ৳\${price} / ID</div>
-                            </div>
-                        \`;
-                    });
-
-                    document.getElementById('user-submit-cat-grid').innerHTML = submitHtml;
-                    document.getElementById('user-report-cat-grid').innerHTML = reportHtml;
-                }
-
-                function showRegister() {
-                    document.getElementById('login-card').classList.add('hidden');
-                    document.getElementById('register-card').classList.remove('hidden');
-                }
-
-                function showLogin() {
-                    document.getElementById('register-card').classList.add('hidden');
-                    document.getElementById('login-card').classList.remove('hidden');
-                }
-
-                function registerUser() {
-                    const firstName = document.getElementById('reg-firstname').value.trim();
-                    const lastName = document.getElementById('reg-lastname').value.trim();
-                    const username = document.getElementById('reg-username').value.trim();
-                    const email = document.getElementById('reg-email').value.trim();
-                    const password = document.getElementById('reg-pass').value.trim();
-
-                    if(!firstName || !username || !email || !password) return alert('Please fill all required fields!');
-
-                    fetch('/api/register', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ firstName, lastName, username, email, password })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            alert('Account created successfully! Please login.');
-                            showLogin();
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-                }
-
-                function loginUser() {
-                    const email = document.getElementById('login-email').value.trim();
-                    const password = document.getElementById('login-pass').value.trim();
-
-                    if(!email || !password) return alert('Please enter email and password!');
-
-                    fetch('/api/login', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ email, password })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            currentUser = data.user;
-                            localStorage.setItem('portal_user', JSON.stringify(currentUser));
-                            fetchPortalDataAndInit();
-                            document.getElementById('login-card').classList.add('hidden');
-                            document.getElementById('dashboard-card').classList.remove('hidden');
-                            switchUserTab('submit');
-                            backToCategories();
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-                }
-
-                function updateUserUI() {
-                    if(!currentUser) return;
-                    document.getElementById('user-display-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
-                    document.getElementById('user-display-tg').innerText = '@' + currentUser.username;
-                    document.getElementById('user-balance-display').innerText = '৳' + Number(currentUser.balance || 0).toFixed(2);
-                }
-
-                function refreshUserDataSilent() {
-                    if(!currentUser) return;
-                    fetch('/api/user/refresh/' + currentUser.username)
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            currentUser = data.user;
-                            localStorage.setItem('portal_user', JSON.stringify(currentUser));
-                            updateUserUI();
-                        }
-                    });
-                }
-
-                function switchUserTab(tab) {
-                    document.getElementById('tab-btn-submit').classList.remove('active');
-                    document.getElementById('tab-btn-report').classList.remove('active');
-                    document.getElementById('tab-btn-withdraw').classList.remove('active');
-
-                    document.getElementById('user-section-submit').classList.add('hidden');
-                    document.getElementById('user-section-report').classList.add('hidden');
-                    document.getElementById('user-section-withdraw').classList.add('hidden');
-
-                    if(tab === 'submit') {
-                        document.getElementById('tab-btn-submit').classList.add('active');
-                        document.getElementById('user-section-submit').classList.remove('hidden');
-                        backToCategories();
-                    } else if(tab === 'report') {
-                        document.getElementById('tab-btn-report').classList.add('active');
-                        document.getElementById('user-section-report').classList.remove('hidden');
-                        backToCategories();
-                    } else {
-                        document.getElementById('tab-btn-withdraw').classList.add('active');
-                        document.getElementById('user-section-withdraw').classList.remove('hidden');
-                        loadUserWithdraws();
-                    }
-                }
-
-                function openCategory(catId, catName, mode) {
-                    activeCategory = catId;
-                    activeMode = mode;
-                    if(mode === 'submit') {
-                        document.getElementById('active-category-title').innerText = catName;
-                        document.getElementById('category-selection-view').classList.add('hidden');
-                        document.getElementById('category-form-view').classList.remove('hidden');
-                        loadUserSubs();
-                    } else {
-                        let price = categoryPrices[catId] || 10;
-                        document.getElementById('active-report-category-title').innerText = catName + ' (Rate: ৳' + price + '/ID)';
-                        document.getElementById('report-category-selection-view').classList.add('hidden');
-                        document.getElementById('report-checker-view').classList.remove('hidden');
-                        document.getElementById('checker-input-uids').value = '';
-                        document.getElementById('checker-output-box').innerHTML = '<div style="color: #64748b; text-align: center; padding: 40px;">No UIDs scanned yet. Enter UIDs above and click start scanner.</div>';
-                        document.getElementById('stat-total').innerText = '0';
-                        document.getElementById('stat-live').innerText = '0%';
-                        document.getElementById('stat-die').innerText = '0%';
-                        document.getElementById('claim-section-box').style.display = 'none';
-                        currentLiveClaimableUids = [];
-                    }
-                }
-
-                function backToCategories() {
-                    activeCategory = null;
-                    document.getElementById('category-form-view').classList.add('hidden');
-                    document.getElementById('category-selection-view').classList.remove('hidden');
-                    document.getElementById('report-checker-view').classList.add('hidden');
-                    document.getElementById('report-category-selection-view').classList.remove('hidden');
-                    refreshUserDataSilent();
-                    fetchPortalDataAndInit();
-                }
-
-                function runUidChecker() {
-                    const text = document.getElementById('checker-input-uids').value.trim();
-                    if(!text) return alert('Please enter UIDs to check!');
-
-                    const userUids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
-
-                    fetch('/api/user/check-uids', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ username: currentUser.username, category: activeCategory, uids: userUids })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            const results = data.results; 
-                            let outputBox = document.getElementById('checker-output-box');
-                            outputBox.innerHTML = '';
-
-                            let liveCount = 0;
-                            let dieCount = 0;
-                            let total = results.length;
-                            currentLiveClaimableUids = [];
-
-                            results.forEach(r => {
-                                if(r.isLive) {
-                                    liveCount++;
-                                    outputBox.innerHTML += '<div class="output-live">[LIVE] ID: ' + r.uid + (r.alreadyClaimed ? ' (Already Claimed)' : '') + '</div>';
-                                    if(!r.alreadyClaimed) {
-                                        currentLiveClaimableUids.push(r.uid);
-                                    }
-                                } else {
-                                    dieCount++;
-                                    outputBox.innerHTML += '<div class="output-die">[DIE] ID: ' + r.uid + '</div>';
-                                }
-                            });
-
-                            let livePercent = total > 0 ? Math.round((liveCount / total) * 100) : 0;
-                            let diePercent = total > 0 ? Math.round((dieCount / total) * 100) : 0;
-
-                            document.getElementById('stat-total').innerText = total;
-                            document.getElementById('stat-live').innerText = livePercent + '%\\nLIVE';
-                            document.getElementById('stat-die').innerText = diePercent + '%\\nDIE';
-
-                            // Show claim box if there are unclaimed live UIDs
-                            let price = categoryPrices[activeCategory] || 10;
-                            let totalClaimableAmount = currentLiveClaimableUids.length * price;
-
-                            if(currentLiveClaimableUids.length > 0) {
-                                document.getElementById('claimable-text').innerText = 'You have ' + currentLiveClaimableUids.length + ' unclaimed live ID(s) worth ৳' + totalClaimableAmount + '!';
-                                document.getElementById('claim-section-box').style.display = 'block';
-                            } else {
-                                document.getElementById('claim-section-box').style.display = 'none';
-                            }
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-                }
-
-                function claimLiveUids() {
-                    if(currentLiveClaimableUids.length === 0) return alert('No claimable live IDs found!');
-
-                    fetch('/api/user/claim-uids', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ username: currentUser.username, category: activeCategory, uids: currentLiveClaimableUids })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            alert('Successfully claimed ৳' + data.rewardAmount + ' to your balance!');
-                            currentUser.balance = data.newBalance;
-                            localStorage.setItem('portal_user', JSON.stringify(currentUser));
-                            updateUserUI();
-                            document.getElementById('claim-section-box').style.display = 'none';
-                            currentLiveClaimableUids = [];
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-                }
-
-                function submitId() {
-                    const details = document.getElementById('id-details').value.trim();
-                    if(!details) return alert('Please enter details!');
-
-                    fetch('/api/submit', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ username: currentUser.username, category: activeCategory, details })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            alert('Submitted successfully!');
-                            document.getElementById('id-details').value = '';
-                            loadUserSubs();
-                        }
-                    });
-                }
-
-                function loadUserSubs() {
-                    fetch('/api/user/' + currentUser.username + '/' + activeCategory)
-                    .then(res => res.json())
-                    .then(data => {
-                        let tbody = document.getElementById('user-subs-table');
-                        tbody.innerHTML = '';
-                        if(data.submissions.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
-                            return;
-                        }
-                        data.submissions.forEach(s => {
-                            let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
-                            let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
-                            let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\\'' + s.id + '\\')">Delete</button></td></tr>';
-                        });
-                    });
-                }
-
-                function deleteSub(id) {
-                    if(!confirm('Are you sure you want to delete this?')) return;
-                    fetch('/api/delete/' + id, { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            loadUserSubs();
-                        }
-                    });
-                }
-
-                function sendWithdrawRequest() {
-                    const method = document.getElementById('withdraw-method').value;
-                    const phone = document.getElementById('withdraw-phone').value.trim();
-                    const amount = parseFloat(document.getElementById('withdraw-amount').value);
-
-                    if(!phone || !amount || amount <= 0) return alert('Please fill valid phone and amount!');
-                    if(amount > currentUser.balance) return alert('Insufficient balance!');
-
-                    fetch('/api/withdraw', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ username: currentUser.username, method, phone, amount })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            alert('Withdrawal request sent successfully!');
-                            document.getElementById('withdraw-phone').value = '';
-                            document.getElementById('withdraw-amount').value = '';
-                            refreshUserDataSilent();
-                            loadUserWithdraws();
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-                }
-
-                function loadUserWithdraws() {
-                    fetch('/api/user/withdrawals/' + currentUser.username)
-                    .then(res => res.json())
-                    .then(data => {
-                        let tbody = document.getElementById('user-withdraw-table');
-                        tbody.innerHTML = '';
-                        if(data.withdrawals.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No withdrawal requests found.</td></tr>';
-                            return;
-                        }
-                        data.withdrawals.forEach(w => {
-                            let statusClass = w.status === 'success' ? 'status-success' : 'status-pending';
-                            let statusText = w.status === 'success' ? 'SUCCESS' : 'PENDING';
-                            let dateStr = new Date(w.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td>' + w.method + '</td><td>' + w.phone + '</td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
-                        });
-                    });
-                }
-
-                function logout() {
-                    currentUser = null;
-                    localStorage.removeItem('portal_user');
-                    document.getElementById('dashboard-card').classList.add('hidden');
-                    document.getElementById('login-card').classList.remove('hidden');
-                }
-            </script>
-        </body>
-        </html>
-    `);
-});
-
-// ==================== ২. অ্যাডমিন প্যানেল ====================
-app.get('/admin', (req, res) => {
-    res.send(`
-        <!DOCTYPE html>
-        <html lang="bn">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Premium Admin Dashboard</title>
-            <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-            <style>
-                * { box-sizing: border-box; }
-                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
-                .card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 440px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-                h2 { text-align: center; color: #f8fafc; margin-bottom: 25px; font-weight: 700; font-size: 22px; }
-                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(3, 7, 18, 0.6); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
-                input:focus, textarea:focus { border-color: #10b981; background: rgba(3, 7, 18, 0.9); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
-                .btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-family: inherit; }
-                .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.6); }
-                .hidden { display: none !important; }
-
-                .admin-container { max-width: 1350px !important; padding: 35px !important; border-radius: 24px; }
-                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
-                
-                .category-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
-                .tab-btn { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
-                .tab-btn.active { background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
-
-                .admin-sub-nav { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-                .sub-nav-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
-                .sub-nav-btn.active { background: #3b82f6; color: white; border-color: transparent; }
-
-                .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-                .action-global-btn { background: #3b82f6; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; box-shadow: 0 4px 15px rgba(59,130,246,0.3); display: flex; align-items: center; gap: 6px; font-family: inherit; }
-                .action-global-btn:hover { background: #2563eb; transform: translateY(-2px); }
-                
-                .clear-btn { background: #ef4444 !important; box-shadow: 0 4px 15px rgba(239,68,68,0.3) !important; }
-                .clear-btn:hover { background: #dc2626 !important; }
-
-                .sheet-scroll-box { max-height: 520px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: rgba(3, 7, 18, 0.4); }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 950px; background: transparent; }
-                th, td { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
-                th { background: rgba(3, 7, 18, 0.8); color: #cbd5e1; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
-                td { background: transparent; color: #cbd5e1; }
-                
-                .sheet-details { max-width: 300px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); color: #38bdf8; }
-                
-                .action-cell-flex { display: flex; align-items: center; gap: 8px; justify-content: center; }
-                .balance-input { width: 85px !important; padding: 6px 8px !important; margin-bottom: 0 !important; font-size: 13px !important; text-align: center; }
-                .received-btn { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
-                .received-btn:hover { background: #059669; }
-                .received-text { color: #4ade80; font-weight: bold; text-align: center; display: inline-block; background: rgba(74,222,128,0.15); padding: 6px 10px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(74,222,128,0.3); }
-
-                .row-download-btn { background: #6366f1; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 6px; }
-
-                @media (max-width: 600px) {
-                    body { padding: 10px; }
-                    .card { padding: 20px; }
-                    .admin-container { padding: 15px !important; }
-                }
-            </style>
-        </head>
-        <body>
-
-            <!-- Admin Login -->
-            <div class="card" id="admin-login-card">
-                <h2>Admin Login</h2>
-                <input type="password" id="admin-pass" placeholder="Enter Password (@MYPANEL)">
-                <button class="btn" onclick="adminLogin()">LOGIN TO DASHBOARD</button>
-            </div>
-
-            <!-- Admin Dashboard -->
-            <div class="card admin-container hidden" id="admin-dashboard-card">
-                <div class="header-flex">
-                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Category, Price & Report Control</h2>
-                    <div class="header-btns" id="admin-top-btns">
-                        <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
-                        <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab Data</button>
-                    </div>
-                </div>
-
-                <div class="category-tabs" id="admin-tabs-container">
-                    ${CATEGORIES.map((cat, index) => `
-                        <button class="tab-btn ${index === 0 ? 'active' : ''}" onclick="switchAdminTab('${cat.id}', this)">${cat.name}</button>
-                    `).join('')}
-                    <button class="tab-btn" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
-                </div>
-
-                <!-- Admin Sub View Toggle -->
-                <div class="admin-sub-nav" id="admin-sub-nav-container">
-                    <button class="sub-nav-btn active" id="sub-view-subs" onclick="switchAdminSubView('submissions')">📥 User Submissions</button>
-                    <button class="sub-nav-btn" id="sub-view-report" onclick="switchAdminSubView('report')">⚙️ Manage Report UIDs</button>
-                    <button class="sub-nav-btn" id="sub-view-price" onclick="switchAdminSubView('price')">💰 Set ID Price</button>
-                </div>
-
-                <!-- Submissions View Box -->
-                <div id="admin-submissions-view">
-                    <div class="sheet-scroll-box">
-                        <table>
-                            <thead>
-                                <tr id="table-header-row">
-                                    <th>SL</th>
-                                    <th>Date & Time</th>
-                                    <th>Telegram Username</th>
-                                    <th>Details / Cookies</th>
-                                    <th>Action & Add Balance</th>
-                                </tr>
-                            </thead>
-                            <tbody id="admin-subs-table"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Report UIDs Management Box -->
-                <div id="admin-report-view" class="hidden">
-                    <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
-                        <h3 style="margin-top: 0; color: #38bdf8; font-size: 18px;">Manage Report Box UIDs</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Enter valid UIDs for this category (one UID per line).</p>
-                        
-                        <textarea id="admin-report-textarea" rows="8" placeholder="Paste UIDs here..."></textarea>
-                        <button class="btn" onclick="saveAdminReportUids()" style="max-width: 220px;">Save Report UIDs</button>
-                    </div>
-                </div>
-
-                <!-- Price Management Box -->
-                <div id="admin-price-view" class="hidden">
-                    <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08); max-width: 450px;">
-                        <h3 style="margin-top: 0; color: #4ade80; font-size: 18px;">Set Price per Live ID</h3>
-                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Update the auto claim reward price for this category.</p>
-                        
-                        <label>Price (BDT)</label>
-                        <input type="number" id="admin-price-input" placeholder="10">
-                        <button class="btn" onclick="saveCategoryPrice()">Update Price</button>
-                    </div>
-                </div>
-            </div>
-
-            <script>
-                let allSubmissions = [];
-                let allWithdrawals = [];
-                let adminReports = {};
-                let categoryPrices = {};
-                let activeAdminCategory = '${CATEGORIES[0].id}';
-                let activeAdminSubView = 'submissions';
-
-                function adminLogin() {
-                    const pass = document.getElementById('admin-pass').value;
-                    
-                    fetch('/api/admin/login', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ password: pass })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            document.getElementById('admin-login-card').classList.add('hidden');
-                            document.getElementById('admin-dashboard-card').classList.remove('hidden');
-                            loadAdminData();
-                        } else {
-                            alert('Wrong Password! Use @MYPANEL');
-                        }
-                    });
-                }
-
-                function switchAdminTab(catId, btnElement) {
-                    activeAdminCategory = catId;
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btnElement.classList.add('active');
-
-                    if(catId === 'withdrawals') {
-                        document.getElementById('admin-sub-nav-container').classList.add('hidden');
-                        document.getElementById('admin-top-btns').classList.add('hidden');
-                        switchAdminSubView('submissions');
-                    } else {
-                        document.getElementById('admin-sub-nav-container').classList.remove('hidden');
-                        document.getElementById('admin-top-btns').classList.remove('hidden');
-                    }
-                    renderAdminTable();
-                }
-
-                function switchAdminSubView(view) {
-                    activeAdminSubView = view;
-                    document.getElementById('sub-view-subs').classList.remove('active');
-                    document.getElementById('sub-view-report').classList.remove('active');
-                    document.getElementById('sub-view-price').classList.remove('active');
-
-                    document.getElementById('admin-submissions-view').classList.add('hidden');
-                    document.getElementById('admin-report-view').classList.add('hidden');
-                    document.getElementById('admin-price-view').classList.add('hidden');
-
-                    if(view === 'submissions') {
-                        document.getElementById('sub-view-subs').classList.add('active');
-                        document.getElementById('admin-submissions-view').classList.remove('hidden');
-                        document.getElementById('admin-top-btns').classList.remove('hidden');
-                    } else if(view === 'report') {
-                        document.getElementById('sub-view-report').classList.add('active');
-                        document.getElementById('admin-report-view').classList.remove('hidden');
-                        let currentUids = adminReports[activeAdminCategory] || [];
-                        document.getElementById('admin-report-textarea').value = currentUids.join('\\n');
-                    } else if(view === 'price') {
-                        document.getElementById('sub-view-price').classList.add('active');
-                        document.getElementById('admin-price-view').classList.remove('hidden');
-                        let defaults = { instagram_2fa: 10, fb_page_cookies: 15, fb_cookies_id: 20, hotmail_cookies: 12 };
-                        let currentPrice = categoryPrices[activeAdminCategory] !== undefined ? categoryPrices[activeAdminCategory] : defaults[activeAdminCategory];
-                        document.getElementById('admin-price-input').value = currentPrice;
-                    }
-                }
-
-                function loadAdminData() {
-                    fetch('/api/admin/data')
-                    .then(res => res.json())
-                    .then(data => {
-                        allSubmissions = data.submissions;
-                        allWithdrawals = data.withdrawals;
-                        adminReports = data.adminReports || {};
-                        categoryPrices = data.prices || {};
-                        renderAdminTable();
-                    });
-                }
-
-                function renderAdminTable() {
-                    let theadRow = document.getElementById('table-header-row');
-                    let tbody = document.getElementById('admin-subs-table');
-                    tbody.innerHTML = '';
-
-                    if(activeAdminCategory === 'withdrawals') {
-                        theadRow.innerHTML = '<th>SL</th><th>Date & Time</th><th>Username</th><th>Method & Phone</th><th>Amount</th><th>Status / Action</th>';
-                        
-                        if(allWithdrawals.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 25px;">No payment requests found.</td></tr>';
-                            return;
-                        }
-
-                        allWithdrawals.forEach((w, index) => {
-                            let actionCol = w.status === 'success' 
-                                ? '<span class="received-text">SUCCESS</span>' 
-                                : '<button class="received-btn" onclick="approveWithdraw(\\'' + w.id + '\\')">Approve / Pay</button>';
-                            
-                            let dateStr = new Date(w.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + w.username + '</strong></td><td>' + w.method + ' - <strong>' + w.phone + '</strong></td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;">' + actionCol + '</td></tr>';
-                        });
-
-                    } else {
-                        theadRow.innerHTML = '<th>SL</th><th>Date & Time</th><th>Telegram Username</th><th>Details / Cookies</th><th>Action & Add Balance</th>';
-                        
-                        let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
-
-                        if(filtered.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
-                            return;
-                        }
-
-                        filtered.forEach((s, index) => {
-                            let actionColumn = '';
-                            if(s.status === 'success') {
-                                actionColumn = '<span class="received-text">RECEIVED</span>';
-                            } else {
-                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\\'' + s.id + '\\', \\'' + s.username + '\\')">Received & Pay</button></div>';
-                            }
-                            
-                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥</button>';
-                            let dateStr = new Date(s.date).toLocaleString();
-                            
-                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
-                        });
-                    }
-                }
-
-                function saveAdminReportUids() {
-                    const text = document.getElementById('admin-report-textarea').value;
-                    const uids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
-
-                    fetch('/api/admin/save-report', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ category: activeAdminCategory, uids })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            adminReports = data.adminReports;
-                            alert('Report UIDs saved successfully!');
-                        }
-                    });
-                }
-
-                function saveCategoryPrice() {
-                    const price = parseFloat(document.getElementById('admin-price-input').value);
-                    if(isNaN(price) || price < 0) return alert('Please enter a valid price!');
-
-                    fetch('/api/admin/save-price', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ category: activeAdminCategory, price })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            categoryPrices = data.prices;
-                            alert('Price updated successfully to ৳' + price + '!');
-                        }
-                    });
-                }
-
-                function markReceivedAndAddBal(id, username) {
-                    const amountInput = document.getElementById('bal-' + id);
-                    const amount = parseFloat(amountInput.value) || 0;
-
-                    fetch('/api/admin/update-submission', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ id, username, amount })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            loadAdminData();
-                        } else {
-                            alert(data.message);
-                        }
-                    });
-                }
-
-                function approveWithdraw(id) {
-                    if(!confirm('Mark this payment request as success?')) return;
-                    fetch('/api/admin/approve-withdraw/' + id, {method: 'POST'})
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            loadAdminData();
-                        }
-                    });
-                }
-
-                function downloadSingleRow(username, id) {
-                    let sub = allSubmissions.find(s => s.id === id);
-                    if(!sub) return alert('Data not found!');
-
-                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\\r\\n";
-                    let row = [
-                        '"' + new Date(sub.date).toLocaleString() + '"',
-                        '"@' + sub.username + '"',
-                        '"' + sub.category + '"',
-                        '"' + sub.details.replace(/"/g, '""') + '"',
-                        '"' + sub.status.toUpperCase() + '"'
-                    ];
-                    csvContent += row.join(",") + "\\r\\n";
-
-                    let encodedUri = encodeURI(csvContent);
-                    let link = document.createElement("a");
-                    link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", username + "_" + sub.category + ".csv");
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-
-                function downloadCategoryCSV() {
-                    if(activeAdminCategory === 'withdrawals') return alert('Cannot download withdrawals as category CSV.');
-                    let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
-                    if(filtered.length === 0) return alert('No data available to download in this category!');
-                    
-                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\\r\\n";
-                    filtered.forEach((s, index) => {
-                        let row = [
-                            index + 1,
-                            '"' + new Date(s.date).toLocaleString() + '"',
-                            '"@' + s.username + '"',
-                            '"' + s.details.replace(/"/g, '""') + '"',
-                            '"' + s.status.toUpperCase() + '"'
-                        ];
-                        csvContent += row.join(",") + "\\r\\n";
-                    });
-
-                    let encodedUri = encodeURI(csvContent);
-                    let link = document.createElement("a");
-                    link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", activeAdminCategory + "_submissions.csv");
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
-
-                function clearCategorySubmissions() {
-                    if(activeAdminCategory === 'withdrawals') return alert('Cannot clear from here.');
-                    if(!confirm('Are you sure you want to clear all submissions in this category?')) return;
-                    
-                    fetch('/api/admin/clear/' + activeAdminCategory, {method: 'POST'})
-                    .then(res => res.json())
-                    .then(data => {
-                        if(data.success) {
-                            loadAdminData();
-                        }
-                    });
-                }
-            </script>
-        </body>
-        </html>
-    `);
-});
-
-// ==================== API ENDPOINTS ====================
-app.get('/api/portal-init', (req, res) => {
-    const data = loadData();
-    res.json({ success: true, prices: data.prices || {} });
-});
-
-app.post('/api/register', (req, res) => {
-    const { firstName, lastName, username, email, password } = req.body;
-    const data = loadData();
-    
-    let existingUser = data.users.find(u => u.email === email || u.username === username);
-    if(existingUser) {
-        return res.json({ success: false, message: 'Email or Username already exists!' });
-    }
-
-    data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password, balance: 0 });
-    saveData(data);
-    res.json({ success: true });
-});
-
-app.post('/api/login', (req, res) => {
-    const { email, password } = req.body;
-    const data = loadData();
-    
-    let user = data.users.find(u => u.email === email && u.password === password);
-    if(!user) {
-        return res.json({ success: false, message: 'Invalid email or password!' });
-    }
-
-    res.json({ success: true, user });
-});
-
-app.post('/api/admin/login', (req, res) => {
-    const { password } = req.body;
-    if(password === '@MYPANEL') {
-        res.json({ success: true });
-    } else {
-        res.json({ success: false });
-    }
-});
-
-app.get('/api/user/refresh/:username', (req, res) => {
-    const { username } = req.params;
-    const data = loadData();
-    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    if(!user) return res.json({ success: false });
-    res.json({ success: true, user });
-});
-
-app.post('/api/submit', (req, res) => {
-    const { username, category, details } = req.body;
-    const data = loadData();
-    
-    const submission = {
-        id: Date.now().toString(),
-        username,
-        category: category || 'instagram_2fa',
-        details,
-        status: 'pending',
-        date: new Date().toISOString()
-    };
-
-    data.submissions.push(submission);
-    saveData(data);
-    res.json({ success: true });
-});
-
-app.get('/api/user/:username/:category', (req, res) => {
-    const { username, category } = req.params;
-    const data = loadData();
-    const userSubs = data.submissions.filter(s => s.username.toLowerCase() === username.toLowerCase() && s.category === category);
-    res.json({ success: true, submissions: userSubs });
-});
-
-app.post('/api/delete/:id', (req, res) => {
-    const { id } = req.params;
-    const data = loadData();
-    data.submissions = data.submissions.filter(s => s.id !== id);
-    saveData(data);
-    res.json({ success: true });
-});
-
-// Check UIDs and verify if already claimed
-app.post('/api/user/check-uids', (req, res) => {
-    const { username, category, uids } = req.body;
-    const data = loadData();
-    const adminUids = (data.adminReports && data.adminReports[category]) || [];
-    if(!data.claimedUids) data.claimedUids = {};
-
-    const results = uids.map(uid => {
-        const isLive = adminUids.includes(uid);
-        const alreadyClaimed = data.claimedUids[uid] === true;
-        return { uid, isLive, alreadyClaimed };
-    });
-
-    res.json({ success: true, results });
-});
-
-// Claim live UIDs and auto add balance
-app.post('/api/user/claim-uids', (req, res) => {
-    const { username, category, uids } = req.body;
-    const data = loadData();
-    
-    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    if(!user) return res.json({ success: false, message: 'User not found!' });
-
-    if(!data.claimedUids) data.claimedUids = {};
-    const adminUids = (data.adminReports && data.adminReports[category]) || [];
-    
-    // Default prices per category
-    const defaultPrices = { instagram_2fa: 10, fb_page_cookies: 15, fb_cookies_id: 20, hotmail_cookies: 12 };
-    let pricePerId = (data.prices && data.prices[category] !== undefined) ? data.prices[category] : defaultPrices[category];
-
-    let validUidsToClaim = [];
-    uids.forEach(uid => {
-        if(adminUids.includes(uid) && !data.claimedUids[uid]) {
-            validUidsToClaim.push(uid);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Submit & Dashboard - Updated</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-blue: #3b82f6;
+            --accent-blue-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #10b981;
         }
-    });
 
-    if(validUidsToClaim.length === 0) {
-        return res.json({ success: false, message: 'No valid unclaimed live UIDs to claim!' });
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-    let rewardAmount = validUidsToClaim.length * pricePerId;
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-    // Mark as claimed
-    validUidsToClaim.forEach(uid => {
-        data.claimedUids[uid] = true;
-    });
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
 
-    // Add balance to user
-    user.balance = (user.balance || 0) + rewardAmount;
-    saveData(data);
+        /* Header Section */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
 
-    res.json({ success: true, rewardAmount, newBalance: user.balance });
-});
+        .user-info h2 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
 
-app.post('/api/withdraw', (req, res) => {
-    const { username, method, phone, amount } = req.body;
-    const data = loadData();
-    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
-    
-    if(!user || user.balance < amount) {
-        return res.json({ success: false, message: 'Insufficient balance!' });
-    }
+        .user-info p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
 
-    user.balance -= amount;
+        .balance-badge {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: var(--success);
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    const withdrawal = {
-        id: Date.now().toString(),
-        username,
-        method,
-        phone,
-        amount,
-        status: 'pending',
-        date: new Date().toISOString()
-    };
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
 
-    data.withdrawals.push(withdrawal);
-    saveData(data);
-    res.json({ success: true });
-});
+        .tab-btn {
+            background-color: #21262d;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
 
-app.get('/api/user/withdrawals/:username', (req, res) => {
-    const { username } = req.params;
-    const data = loadData();
-    const userWithdraws = data.withdrawals.filter(w => w.username.toLowerCase() === username.toLowerCase());
-    res.json({ success: true, withdrawals: userWithdraws });
-});
+        .tab-btn:hover {
+            background-color: #30363d;
+        }
 
-app.get('/api/admin/data', (req, res) => {
-    const data = loadData();
-    res.json({ 
-        success: true, 
-        submissions: data.submissions, 
-        withdrawals: data.withdrawals,
-        adminReports: data.adminReports || {},
-        prices: data.prices || {}
-    });
-});
+        .tab-btn.active {
+            background-color: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: white;
+        }
 
-app.post('/api/admin/save-report', (req, res) => {
-    const { category, uids } = req.body;
-    const data = loadData();
-    if(!data.adminReports) data.adminReports = {};
-    data.adminReports[category] = uids;
-    saveData(data);
-    res.json({ success: true, adminReports: data.adminReports });
-});
+        /* Content Sections */
+        .content-section {
+            display: none;
+        }
 
-app.post('/api/admin/save-price', (req, res) => {
-    const { category, price } = req.body;
-    const data = loadData();
-    if(!data.prices) data.prices = {};
-    data.prices[category] = price;
-    saveData(data);
-    res.json({ success: true, prices: data.prices });
-});
+        .content-section.active {
+            display: block;
+        }
 
-app.post('/api/admin/update-submission', (req, res) => {
-    const { id, username, amount } = req.body;
-    const data = loadData();
-    
-    let sub = data.submissions.find(s => s.id === id);
-    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+        h3.section-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
 
-    if(sub) {
-        sub.status = 'success';
-    }
-    if(user && amount > 0) {
-        user.balance = (user.balance || 0) + parseFloat(amount);
-    }
+        p.section-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
 
-    saveData(data);
-    res.json({ success: true });
-});
+        /* Category Grid */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
 
-app.post('/api/admin/approve-withdraw/:id', (req, res) => {
-    const { id } = req.params;
-    const data = loadData();
-    let w = data.withdrawals.find(item => item.id === id);
-    if(w) {
-        w.status = 'success';
-        saveData(data);
-    }
-    res.json({ success: true });
-});
+        .category-card {
+            background-color: #21262d;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
 
-app.post('/api/admin/clear/:category', (req, res) => {
-    const { category } = req.params;
-    const data = loadData();
-    data.submissions = data.submissions.filter(s => s.category !== category);
-    saveData(data);
-    res.json({ success: true });
-});
+        .category-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-2px);
+        }
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+        .category-card.selected {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .category-card h4 {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .category-card p {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-blue-hover);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        /* Footer Logout Action */
+        .footer-action {
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        /* Success Message Box */
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="appContainer">
+        <!-- Header Info -->
+        <div class="header-section">
+            <div class="user-info">
+                <h2 id="userNameDisplay">Welcome, Turzo Khan</h2>
+                <p>Telegram: <span id="userTelegramDisplay">@turzokhan59</span></p>
+            </div>
+            <div class="balance-badge">
+                💰 Balance: <span id="userBalanceDisplay">৳0.00</span>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('submitTab', event)">🎮 Submit IDs</button>
+            <button class="tab-btn" onclick="switchTab('checkerTab', event)">🔍 UID Checker & Auto Claim</button>
+            <button class="tab-btn" onclick="switchTab('withdrawTab', event)">💸 Withdraw / Payment</button>
+        </div>
+
+        <!-- Tab 1: Submit IDs -->
+        <div id="submitTab" class="content-section active">
+            <h3 class="section-title">Select Category to Submit ID</h3>
+            <p class="section-desc">Choose a category below to proceed with your submission, and your state will stay secure even after refreshing.</p>
+            
+            <div class="category-grid" id="categoryGrid">
+                <div class="category-card" onclick="selectCategory('Free Fire ID', this)">
+                    <h4>🔥 Free Fire ID</h4>
+                    <p>Submit standard game IDs</p>
+                </div>
+                <div class="category-card" onclick="selectCategory('PUBG Mobile ID', this)">
+                    <h4>🎯 PUBG Mobile ID</h4>
+                    <p>Submit battle royale IDs</p>
+                </div>
+                <div class="category-card" onclick="selectCategory('Telegram Task ID', this)">
+                    <h4>🤖 Telegram Task ID</h4>
+                    <p>Submit bot engagement IDs</p>
+                </div>
+            </div>
+
+            <div id="submissionFormArea" style="display: none;">
+                <div class="form-group">
+                    <label id="selectedCategoryLabel">Enter Game/Task ID:</label>
+                    <input type="text" id="submissionInputId" class="form-control" placeholder="Type your unique ID here...">
+                </div>
+                <button class="btn-primary" onclick="submitUserGameId()">Submit Now</button>
+                <div id="submitAlert" class="alert-success">ID submitted successfully! Balance updated.</div>
+            </div>
+        </div>
+
+        <!-- Tab 2: UID Checker -->
+        <div id="checkerTab" class="content-section">
+            <h3 class="section-title">UID Checker & Auto Claim</h3>
+            <p class="section-desc">Verify your UID status instantly and claim available rewards automatically.</p>
+            <div class="form-group">
+                <label>Enter UID to Check:</label>
+                <input type="text" id="checkUidInput" class="form-control" placeholder="Enter UID...">
+            </div>
+            <button class="btn-primary" onclick="checkUidStatus()">Check & Claim</button>
+            <div id="checkerResult" style="margin-top: 15px; font-size: 14px; color: var(--success);"></div>
+        </div>
+
+        <!-- Tab 3: Withdraw / Payment -->
+        <div id="withdrawTab" class="content-section">
+            <h3 class="section-title">Withdraw / Payment Request</h3>
+            <p class="section-desc">Request payouts directly to your bKash, Nagad, or Rocket account.</p>
+            <div class="form-group">
+                <label>Select Payment Method:</label>
+                <select class="form-control" id="payMethod">
+                    <option value="bkash">bKash</option>
+                    <option value="nagad">Nagad</option>
+                    <option value="rocket">Rocket</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Account Number:</label>
+                <input type="text" id="payNumber" class="form-control" placeholder="01XXXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>Amount (BDT):</label>
+                <input type="number" id="payAmount" class="form-control" placeholder="0.00">
+            </div>
+            <button class="btn-primary" onclick="requestWithdrawal()">Confirm Withdrawal</button>
+            <div id="withdrawAlert" class="alert-success">Withdrawal request submitted successfully!</div>
+        </div>
+
+        <!-- Logout / Reset Session Action -->
+        <div class="footer-action">
+            <button class="btn-danger" onclick="logoutUser()">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        // State Management with localStorage to prevent loss on refresh
+        const AppState = {
+            user: {
+                name: "Turzo Khan",
+                telegram: "@turzokhan59",
+                balance: parseFloat(localStorage.getItem('user_balance')) || 0.00
+            },
+            selectedCategory: localStorage.getItem('selected_category') || null,
+            activeTab: localStorage.getItem('active_tab') || 'submitTab'
+        };
+
+        // Initialize UI on load
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('userNameDisplay').innerText = `Welcome, ${AppState.user.name}`;
+            document.getElementById('userTelegramDisplay').innerText = AppState.user.telegram;
+            updateBalanceDisplay();
+
+            // Restore active tab
+            if (AppState.activeTab) {
+                const tabBtn = document.querySelector(`[onclick*="${AppState.activeTab}"]`);
+                if (tabBtn) {
+                    switchTab(AppState.activeTab, {currentTarget: tabBtn}, false);
+                }
+            }
+
+            // Restore selected category if any
+            if (AppState.selectedCategory) {
+                const cards = document.querySelectorAll('.category-card');
+                cards.forEach(card => {
+                    if (card.querySelector('h4').innerText.includes(AppState.selectedCategory)) {
+                        card.classList.add('selected');
+                        document.getElementById('submissionFormArea').style.display = 'block';
+                        document.getElementById('selectedCategoryLabel').innerText = `Enter ${AppState.selectedCategory}:`;
+                    }
+                });
+            }
+        });
+
+        function updateBalanceDisplay() {
+            document.getElementById('userBalanceDisplay').innerText = `৳${AppState.user.balance.toFixed(2)}`;
+            localStorage.setItem('user_balance', AppState.user.balance);
+        }
+
+        function switchTab(tabId, event, save = true) {
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+
+            if (save) {
+                AppState.activeTab = tabId;
+                localStorage.setItem('active_tab', tabId);
+            }
+        }
+
+        function selectCategory(categoryName, element) {
+            document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+
+            AppState.selectedCategory = categoryName;
+            localStorage.setItem('selected_category', categoryName);
+
+            document.getElementById('submissionFormArea').style.display = 'block';
+            document.getElementById('selectedCategoryLabel').innerText = `Enter ${categoryName}:`;
+        }
+
+        function submitUserGameId() {
+            const inputVal = document.getElementById('submissionInputId').value.trim();
+            if(!inputVal) {
+                alert('দয়া করে আপনার আইডি (ID) লিখুন!');
+                return;
+            }
+
+            // Simulate reward addition
+            AppState.user.balance += 50.00; // Add 50 BDT on successful submit
+            updateBalanceDisplay();
+
+            const alertBox = document.getElementById('submitAlert');
+            alertBox.style.display = 'block';
+            setTimeout(() => { alertBox.style.display = 'none'; }, 3000);
+            document.getElementById('submissionInputId').value = '';
+        }
+
+        function checkUidStatus() {
+            const uid = document.getElementById('checkUidInput').value.trim();
+            const resBox = document.getElementById('checkerResult');
+            if(!uid) {
+                resBox.innerText = 'দয়া করে চেক করার জন্য UID দিন।';
+                resBox.style.color = 'var(--danger)';
+                return;
+            }
+            resBox.style.color = 'var(--success)';
+            resBox.innerText = `UID (${uid}) সফলভাবে ভেরিফাই হয়েছে এবং রিওয়ার্ড क्লেইম করা হয়েছে!`;
+            AppState.user.balance += 20.00;
+            updateBalanceDisplay();
+        }
+
+        function requestWithdrawal() {
+            const num = document.getElementById('payNumber').value.trim();
+            const amt = parseFloat(document.getElementById('payAmount').value) || 0;
+            const wAlert = document.getElementById('withdrawAlert');
+
+            if(!num || amt <= 0) {
+                alert('সঠিক অ্যাকাউন্ট নম্বর এবং পরিমাণ দিন!');
+                return;
+            }
+            if(amt > AppState.user.balance) {
+                alert('আপনার পর্যাপ্ত ব্যালেন্স নেই!');
+                return;
+            }
+
+            AppState.user.balance -= amt;
+            updateBalanceDisplay();
+
+            wAlert.style.display = 'block';
+            setTimeout(() => { wAlert.style.display = 'none'; }, 3000);
+            document.getElementById('payNumber').value = '';
+            document.getElementById('payAmount').value = '';
+        }
+
+        function logoutUser() {
+            if(confirm('আপনি কি সত্যিই লগআউট করতে চান?')) {
+                localStorage.clear();
+                alert('লগআউট সফল হয়েছে!');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
