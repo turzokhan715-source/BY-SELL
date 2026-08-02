@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ID Submission - User Panel</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background: #4f46e5; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; }
+        button:hover { background: #4338ca; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 14px; }
+        th { background: #f9fafb; }
+        .status-pending { color: #d97706; font-weight: bold; }
+        .status-success { color: #16a34a; font-weight: bold; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 style="text-align: center; color: #1f2937;">ID Submission System</h2>
+        
+        <div id="login-section">
+            <h3>Telegram Login</h3>
+            <input type="text" id="username" placeholder="Enter Telegram Username (e.g., @username)">
+            <button onclick="loginUser()">Login</button>
+        </div>
+
+        <div id="dashboard-section" class="hidden">
+            <h3>Welcome, <span id="display-user" style="color: #4f46e5;"></span></h3>
+            <h4>Submit Your ID Details</h4>
+            <textarea id="id-details" rows="4" placeholder="Enter ID details here..."></textarea>
+            <button onclick="submitId()">Submit</button>
+            
+            <h3 style="margin-top: 30px;">Your Submissions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Details</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody id="user-subs-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        function loginUser() {
+            let val = document.getElementById('username').value.trim();
+            if(!val) return alert('Please enter username');
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: val})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    currentUser = data.user.username;
+                    document.getElementById('display-user').innerText = '@' + currentUser;
+                    document.getElementById('login-section').classList.add('hidden');
+                    document.getElementById('dashboard-section').classList.remove('hidden');
+                    loadUserSubs();
+                }
+            });
+        }
+
+        function submitId() {
+            let details = document.getElementById('id-details').value.trim();
+            if(!details) return alert('Enter details');
+            fetch('/api/submit', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: currentUser, details})
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert('Submitted successfully!');
+                    document.getElementById('id-details').value = '';
+                    loadUserSubs();
+                }
+            });
+        }
+
+        function loadUserSubs() {
+            fetch('/api/user/' + currentUser)
+            .then(res => res.json())
+            .then(data => {
+                let tbody = document.getElementById('user-subs-table');
+                tbody.innerHTML = '';
+                data.submissions.forEach(s => {
+                    tbody.innerHTML += `<tr>
+                        <td>${s.details}</td>
+                        <td class="status-${s.status}">${s.status.toUpperCase()}</td>
+                        <td>${new Date(s.date).toLocaleString()}</td>
+                    </tr>`;
+                });
+            });
+        }
+    </script>
+</body>
+</html>
