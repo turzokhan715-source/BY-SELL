@@ -45,14 +45,16 @@ app.get('/', (req, res) => {
                 .switch-text:hover { color: #4f46e5; }
                 .hidden { display: none !important; }
                 
-                /* Dashboard Table */
-                .dashboard-container { max-width: 800px !important; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { border: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 14px; }
-                th { background: #f9fafb; color: #374151; }
+                /* Dashboard Table & Fixed Scroll Box */
+                .dashboard-container { max-width: 850px !important; }
+                .table-responsive { max-height: 400px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; margin-top: 15px; }
+                table { width: 100%; border-collapse: collapse; }
+                th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 14px; }
+                th { background: #f9fafb; color: #374151; position: sticky; top: 0; z-index: 10; }
+                td.details-cell { max-width: 350px; word-break: break-all; text-align: left; max-height: 100px; overflow-y: auto; display: block; }
                 .status-pending { color: #d97706; font-weight: bold; background: #fef3c7; padding: 4px 8px; border-radius: 6px; display: inline-block; }
                 .status-success { color: #16a34a; font-weight: bold; background: #dcfce7; padding: 4px 8px; border-radius: 6px; display: inline-block; }
-                .logout-btn { background: #ef4444; margin-top: 15px; }
+                .logout-btn { background: #ef4444; margin-top: 20px; }
                 .logout-btn:hover { background: #dc2626; }
             </style>
         </head>
@@ -114,16 +116,18 @@ app.get('/', (req, res) => {
                 <button class="btn" onclick="submitId()">Submit</button>
 
                 <h3 style="margin-top: 30px; color: #111827;">Submission History</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date & Time</th>
-                            <th>Details</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-subs-table"></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Details</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-subs-table"></tbody>
+                    </table>
+                </div>
                 <button class="btn logout-btn" onclick="logout()">Logout</button>
             </div>
 
@@ -220,11 +224,11 @@ app.get('/', (req, res) => {
                         data.submissions.forEach(s => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
-                            tbody.innerHTML += \`<tr>
-                                <td>\${new Date(s.date).toLocaleString()}</td>
-                                <td>\${s.details}</td>
-                                <td><span class="\${statusClass}">\${statusText}</span></td>
-                            </tr>\`;
+                            tbody.innerHTML += `<tr>
+                                <td>${new Date(s.date).toLocaleString()}</td>
+                                <td><div class="details-cell">${s.details}</div></td>
+                                <td><span class="${statusClass}">${statusText}</span></td>
+                            </tr>`;
                         });
                     });
                 }
@@ -258,13 +262,15 @@ app.get('/admin', (req, res) => {
                 .btn:hover { background: #4338ca; }
                 .hidden { display: none !important; }
 
-                /* Google Sheet Table Style */
-                .admin-container { max-width: 950px !important; }
-                table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
+                /* Google Sheet Table Style with Fixed Scroll Box */
+                .admin-container { max-width: 1050px !important; }
+                .sheet-scroll-box { max-height: 500px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 6px; }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; }
                 th, td { border: 1px solid #d1d5db; padding: 10px 15px; text-align: left; }
-                th { background: #107c41; color: white; font-weight: 600; text-align: center; } /* Google Sheet Green Theme */
+                th { background: #107c41; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
                 td { background: #ffffff; color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
+                td.admin-details { max-width: 400px; word-break: break-all; max-height: 100px; overflow-y: auto; display: block; }
                 .received-btn { background: #107c41; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
                 .received-btn:hover { background: #0b5c31; }
                 .received-text { color: #107c41; font-weight: bold; text-align: center; display: block; }
@@ -282,7 +288,7 @@ app.get('/admin', (req, res) => {
             <!-- Admin Sheet View -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <h2>Google Sheet Format - Submissions</h2>
-                <div style="overflow-x: auto;">
+                <div class="sheet-scroll-box">
                     <table>
                         <thead>
                             <tr>
@@ -325,7 +331,7 @@ app.get('/admin', (req, res) => {
                                 <td style="text-align: center;">\${index + 1}</td>
                                 <td>\${new Date(s.date).toLocaleString()}</td>
                                 <td><strong>@\${s.username}</strong></td>
-                                <td>\${s.details}</td>
+                                <td><div class="admin-details">\${s.details}</div></td>
                                 <td style="text-align: center;">\${actionColumn}</td>
                             </tr>\`;
                         });
