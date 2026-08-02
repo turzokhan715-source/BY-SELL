@@ -31,24 +31,25 @@ app.get('/', (req, res) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>User Panel - ID Submission</title>
             <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                .card { background: white; width: 100%; max-width: 450px; padding: 35px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); box-sizing: border-box; }
+                * { box-sizing: border-box; }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                .card { background: white; width: 100%; max-width: 480px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
                 .icon-box { width: 50px; height: 50px; background: #4f46e5; border-radius: 12px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 24px; }
                 h2 { text-align: center; color: #111827; margin-bottom: 5px; }
                 p.subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 25px; }
                 label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; text-transform: uppercase; }
-                input, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 10px; box-sizing: border-box; font-size: 14px; background: #f9fafb; outline: none; transition: 0.3s; }
+                input, textarea { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; transition: 0.3s; }
                 input:focus, textarea:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
                 .btn { background: #4f46e5; color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; transition: 0.3s; }
                 .btn:hover { background: #4338ca; }
-                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #6b7280; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #6b7280; font-weight: 600; cursor: pointer; text-transform: uppercase; }
                 .switch-text:hover { color: #4f46e5; }
                 .hidden { display: none !important; }
                 
-                /* Dashboard Table & Fixed Scroll Box */
-                .dashboard-container { max-width: 850px !important; }
-                .table-responsive { max-height: 400px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; margin-top: 15px; }
-                table { width: 100%; border-collapse: collapse; }
+                /* Responsive Dashboard Container */
+                .dashboard-container { max-width: 900px !important; width: 100% !important; padding: 25px; }
+                .table-responsive { max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 10px; margin-top: 15px; }
+                table { width: 100%; border-collapse: collapse; min-width: 600px; }
                 th, td { border-bottom: 1px solid #e5e7eb; padding: 12px; text-align: center; font-size: 14px; }
                 th { background: #f9fafb; color: #374151; position: sticky; top: 0; z-index: 10; }
                 td.details-cell { max-width: 350px; word-break: break-all; text-align: left; max-height: 100px; overflow-y: auto; display: block; }
@@ -56,6 +57,13 @@ app.get('/', (req, res) => {
                 .status-success { color: #16a34a; font-weight: bold; background: #dcfce7; padding: 4px 8px; border-radius: 6px; display: inline-block; }
                 .logout-btn { background: #ef4444; margin-top: 20px; }
                 .logout-btn:hover { background: #dc2626; }
+
+                /* Mobile Screen Adjustments */
+                @media (max-width: 600px) {
+                    body { padding: 10px; }
+                    .card { padding: 20px; }
+                    .dashboard-container { padding: 15px; }
+                }
             </style>
         </head>
         <body>
@@ -254,18 +262,19 @@ app.get('/admin', (req, res) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Google Sheet Style Admin Panel</title>
             <style>
-                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                .card { background: white; width: 100%; max-width: 400px; padding: 35px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); box-sizing: border-box; }
+                * { box-sizing: border-box; }
+                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                .card { background: white; width: 100%; max-width: 400px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
                 h2 { text-align: center; color: #111827; margin-bottom: 20px; }
-                input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 10px; box-sizing: border-box; font-size: 14px; background: #f9fafb; outline: none; }
+                input { width: 100%; padding: 12px 15px; margin-bottom: 15px; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 14px; background: #f9fafb; outline: none; }
                 .btn { background: #4f46e5; color: white; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; width: 100%; transition: 0.3s; }
                 .btn:hover { background: #4338ca; }
                 .hidden { display: none !important; }
 
-                /* Google Sheet Table Style with Fixed Scroll Box */
-                .admin-container { max-width: 1050px !important; }
-                .sheet-scroll-box { max-height: 500px; overflow-y: auto; border: 1px solid #d1d5db; border-radius: 6px; }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; }
+                /* Google Sheet Responsive Style */
+                .admin-container { max-width: 1100px !important; width: 100% !important; padding: 20px; }
+                .sheet-scroll-box { max-height: 550px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 6px; }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 700px; }
                 th, td { border: 1px solid #d1d5db; padding: 10px 15px; text-align: left; }
                 th { background: #107c41; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
                 td { background: #ffffff; color: #1f2937; }
@@ -274,6 +283,13 @@ app.get('/admin', (req, res) => {
                 .received-btn { background: #107c41; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600; }
                 .received-btn:hover { background: #0b5c31; }
                 .received-text { color: #107c41; font-weight: bold; text-align: center; display: block; }
+
+                /* Mobile Screen Adjustments */
+                @media (max-width: 600px) {
+                    body { padding: 10px; }
+                    .card { padding: 20px; }
+                    .admin-container { padding: 10px; }
+                }
             </style>
         </head>
         <body>
