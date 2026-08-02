@@ -9,7 +9,6 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Helper to read data.json safely
 function readData() {
     if (!fs.existsSync(DATA_FILE)) {
         const initialData = { users: [], submissions: [], categories: [] };
@@ -23,12 +22,10 @@ function readData() {
     }
 }
 
-// Helper to write data.json safely
 function writeData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// API endpoints for persistence
 app.get('/api/data', (req, res) => {
     const data = readData();
     res.json(data);
@@ -43,7 +40,6 @@ app.post('/api/data', (req, res) => {
     }
 });
 
-// Single-File Frontend Route (HTML + CSS + JS)
 app.get('*', (req, res) => {
     res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -53,22 +49,22 @@ app.get('*', (req, res) => {
     <title>ID Submission & Payment Portal</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --card-bg: #161b22;
-            --border-color: #30363d;
-            --text-primary: #f0f6fc;
-            --text-secondary: #8b949e;
-            --accent-blue: #3b82f6;
-            --accent-blue-hover: #2563eb;
-            --danger: #ef4444;
-            --success: #10b981;
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --border-color: #1f2937;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --danger: #dc2626;
+            --success: #059669;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
@@ -83,12 +79,12 @@ app.get('*', (req, res) => {
 
         .container {
             width: 100%;
-            max-width: 850px;
+            max-width: 900px;
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
         }
 
         .header-section {
@@ -96,17 +92,17 @@ app.get('*', (req, res) => {
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-            margin-bottom: 25px;
+            padding-bottom: 24px;
+            margin-bottom: 28px;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px;
         }
 
         .user-info h2 {
-            font-size: 24px;
-            font-weight: 600;
+            font-size: 26px;
+            font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
 
         .user-info p {
@@ -115,45 +111,48 @@ app.get('*', (req, res) => {
         }
 
         .balance-badge {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            color: var(--success);
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-weight: 600;
+            background: rgba(5, 150, 105, 0.1);
+            border: 1px solid rgba(5, 150, 105, 0.3);
+            color: #34d399;
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-weight: 700;
             font-size: 16px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.1);
         }
 
         .nav-tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 25px;
+            gap: 12px;
+            margin-bottom: 30px;
             flex-wrap: wrap;
         }
 
         .tab-btn {
-            background-color: #21262d;
+            background-color: #1f2937;
             border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            padding: 10px 18px;
-            border-radius: 8px;
+            color: var(--text-secondary);
+            padding: 12px 20px;
+            border-radius: 12px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            font-weight: 600;
+            transition: all 0.25s ease;
         }
 
         .tab-btn:hover {
-            background-color: #30363d;
+            background-color: #374151;
+            color: var(--text-primary);
         }
 
         .tab-btn.active {
             background-color: var(--accent-blue);
             border-color: var(--accent-blue);
             color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
         }
 
         .content-section {
@@ -165,110 +164,139 @@ app.get('*', (req, res) => {
         }
 
         h3.section-title {
-            font-size: 18px;
-            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 8px;
             color: var(--text-primary);
         }
 
         p.section-desc {
             color: var(--text-secondary);
             font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .category-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 18px;
+            margin-bottom: 28px;
         }
 
         .category-card {
-            background-color: #21262d;
+            background-color: #1f2937;
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 20px;
+            border-radius: 14px;
+            padding: 22px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
+            transition: all 0.25s ease;
+            text-align: left;
+        }
+
+        .category-card h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .category-card p {
+            font-size: 13px;
+            color: var(--text-secondary);
         }
 
         .category-card:hover {
             border-color: var(--accent-blue);
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            background-color: #253041;
         }
 
         .category-card.selected {
             border-color: var(--accent-blue);
-            background: rgba(59, 130, 246, 0.1);
+            background: rgba(37, 99, 235, 0.12);
+            box-shadow: 0 0 0 1px var(--accent-blue);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .form-group label {
             display: block;
             margin-bottom: 8px;
             font-size: 14px;
+            font-weight: 500;
             color: var(--text-secondary);
         }
 
         .form-control {
             width: 100%;
-            padding: 12px 15px;
-            background-color: #0d1117;
+            padding: 14px 18px;
+            background-color: #0b0f19;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 12px;
             color: var(--text-primary);
             font-size: 14px;
+            transition: all 0.2s ease;
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
         }
 
         .btn-primary {
             background-color: var(--accent-blue);
             color: white;
             border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 14px 24px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             font-size: 14px;
+            transition: background-color 0.2s ease, transform 0.1s ease;
         }
 
         .btn-primary:hover {
             background-color: var(--accent-blue-hover);
         }
 
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
         .btn-danger {
             background-color: var(--danger);
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 12px 22px;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             font-size: 14px;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
         }
 
         .footer-action {
-            margin-top: 30px;
+            margin-top: 35px;
             border-top: 1px solid var(--border-color);
-            padding-top: 20px;
+            padding-top: 24px;
         }
 
         .alert-success {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgba(5, 150, 105, 0.1);
             border: 1px solid var(--success);
-            color: var(--success);
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
+            color: #34d399;
+            padding: 14px;
+            border-radius: 12px;
+            margin-top: 18px;
             font-size: 14px;
+            font-weight: 500;
             display: none;
         }
     </style>
@@ -325,7 +353,7 @@ app.get('*', (req, res) => {
                 <input type="text" id="checkUidInput" class="form-control" placeholder="Enter UID...">
             </div>
             <button class="btn-primary" onclick="checkUidStatus()">Check & Claim</button>
-            <div id="checkerResult" style="margin-top: 15px; font-size: 14px;"></div>
+            <div id="checkerResult" style="margin-top: 18px; font-size: 14px; font-weight: 500;"></div>
         </div>
 
         <div id="withdrawTab" class="content-section">
