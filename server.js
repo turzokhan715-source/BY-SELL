@@ -21,7 +21,15 @@ function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// ==================== ১. ইউজার প্যানেল (মূল লিঙ্ক: /) ====================
+// ক্যাটেগরি লিস্ট
+const CATEGORIES = [
+    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', color: '#e1306c' },
+    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', color: '#1877f2' },
+    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', color: '#0084ff' },
+    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', color: '#00a4ef' }
+];
+
+// ==================== ১. ইউজার প্যানেল ====================
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -34,7 +42,7 @@ app.get('/', (req, res) => {
                 * { box-sizing: border-box; }
                 body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); margin: 0; padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
                 
-                .card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); width: 100%; max-width: 450px; padding: 25px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+                .card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); width: 100%; max-width: 480px; padding: 25px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
                 .icon-box { width: 50px; height: 50px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 14px; margin: 0 auto 15px; display: flex; justify-content: center; align-items: center; color: white; font-size: 24px; box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3); }
                 
                 h2 { text-align: center; color: #111827; margin-bottom: 5px; font-weight: 700; font-size: 22px; }
@@ -51,34 +59,42 @@ app.get('/', (req, res) => {
                 .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
-                .dashboard-container { max-width: 1000px !important; width: 100% !important; padding: 20px !important; }
-                .sheet-scroll-box { max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 10px; margin-top: 15px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                .dashboard-container { max-width: 900px !important; width: 100% !important; padding: 25px !important; }
                 
-                table { width: 100%; border-collapse: collapse; min-width: 750px; background: white; font-size: 13px; }
+                /* Category Boxes Style */
+                .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+                .cat-card { background: white; border: 2px solid #e5e7eb; border-radius: 14px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+                .cat-card:hover { transform: translateY(-3px); border-color: #4f46e5; box-shadow: 0 10px 20px rgba(79,70,229,0.15); }
+                .cat-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+                .cat-title { font-weight: 700; color: #1f2937; font-size: 14px; }
+
+                .back-btn { background: #6b7280; width: auto; padding: 8px 16px; margin-bottom: 15px; font-size: 12px; box-shadow: none; }
+                .back-btn:hover { background: #4b5563; }
+
+                .sheet-scroll-box { max-height: 350px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 10px; margin-top: 15px; background: white; }
+                table { width: 100%; border-collapse: collapse; min-width: 650px; background: white; font-size: 13px; }
                 th, td { border: 1px solid #d1d5db; padding: 12px 14px; text-align: left; white-space: nowrap; }
                 th { background: #f8fafc; color: #374151; position: sticky; top: 0; z-index: 10; font-weight: 700; text-align: center; }
                 td { color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
                 
-                .sheet-details { max-width: 350px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 6px; border: 1px solid #eee; }
+                .sheet-details { max-width: 300px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 6px; border: 1px style solid #eee; }
                 .sheet-details::-webkit-scrollbar { height: 5px; }
                 .sheet-details::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
                 
                 .status-pending { color: #d97706; font-weight: 700; background: #fef3c7; padding: 5px 10px; border-radius: 20px; display: inline-block; font-size: 11px; text-align: center; }
                 .status-success { color: #16a34a; font-weight: 700; background: #dcfce7; padding: 5px 10px; border-radius: 20px; display: inline-block; font-size: 11px; text-align: center; }
                 
-                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
+                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 600; transition: 0.2s; }
                 .delete-btn:hover { transform: scale(1.05); }
 
-                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 20px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); max-width: 160px; }
-                .logout-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
+                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 25px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); max-width: 150px; }
 
                 @media (max-width: 600px) {
                     body { padding: 5px; }
                     .card { padding: 15px; border-radius: 16px; }
-                    .dashboard-container { padding: 12px !important; }
-                    h2 { font-size: 18px; }
-                    .sheet-details { max-width: 200px; }
+                    .dashboard-container { padding: 15px !important; }
+                    .category-grid { grid-template-columns: 1fr; }
                 }
             </style>
         </head>
@@ -130,38 +146,60 @@ app.get('/', (req, res) => {
                 <div class="switch-text" onclick="showLogin()">Already have an account? Login</div>
             </div>
 
-            <!-- User Dashboard -->
+            <!-- User Dashboard (Category Selection View) -->
             <div class="card dashboard-container hidden" id="dashboard-card">
-                <div>
-                    <h2 style="text-align: left; margin: 0; font-size: 20px;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
-                    <p class="subtitle" style="text-align: left; margin: 3px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <label>Submit ID Details / Cookies</label>
-                    <textarea id="id-details" rows="3" placeholder="Paste your ID details or cookies here..."></textarea>
-                    <button class="btn" onclick="submitId()" style="width: 180px;">Submit Now</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <h2 style="text-align: left; margin: 0; font-size: 20px;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
+                        <p class="subtitle" style="text-align: left; margin: 3px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
+                    </div>
                 </div>
 
-                <h3 style="margin-top: 25px; color: #111827; font-size: 16px;">Google Sheet Format - History</h3>
-                <div class="sheet-scroll-box">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Date & Time</th>
-                                <th>ID Details</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-subs-table"></tbody>
-                    </table>
+                <div id="category-selection-view">
+                    <h3 style="margin-top: 25px; color: #111827; font-size: 16px;">Select Category to Submit ID</h3>
+                    <div class="category-grid">
+                        ${CATEGORIES.map(cat => `
+                            <div class="cat-card" onclick="openCategory('${cat.id}', '${cat.name}')">
+                                <span class="cat-icon">${cat.icon}</span>
+                                <div class="cat-title">${cat.name}</div>
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
+
+                <!-- Specific Category Submission & History View -->
+                <div id="category-form-view" class="hidden">
+                    <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
+                    <h3 id="active-category-title" style="color: #4f46e5; margin-bottom: 15px;"></h3>
+                    
+                    <div>
+                        <label>Submit Details / Cookies</label>
+                        <textarea id="id-details" rows="3" placeholder="Paste details or cookies here..."></textarea>
+                        <button class="btn" onclick="submitId()" style="width: 160px;">Submit Now</button>
+                    </div>
+
+                    <h4 style="margin-top: 25px; color: #111827; font-size: 15px;">Your Submissions for this Category</h4>
+                    <div class="sheet-scroll-box">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="user-subs-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <button class="btn logout-btn" onclick="logout()">Logout</button>
             </div>
 
             <script>
                 let currentUser = null;
+                let activeCategory = null;
 
                 function showRegister() {
                     document.getElementById('login-card').classList.add('hidden');
@@ -218,21 +256,35 @@ app.get('/', (req, res) => {
                             
                             document.getElementById('login-card').classList.add('hidden');
                             document.getElementById('dashboard-card').classList.remove('hidden');
-                            loadUserSubs();
+                            backToCategories();
                         } else {
                             alert(data.message);
                         }
                     });
                 }
 
+                function openCategory(catId, catName) {
+                    activeCategory = catId;
+                    document.getElementById('active-category-title').innerText = catName;
+                    document.getElementById('category-selection-view').classList.add('hidden');
+                    document.getElementById('category-form-view').classList.remove('hidden');
+                    loadUserSubs();
+                }
+
+                function backToCategories() {
+                    activeCategory = null;
+                    document.getElementById('category-form-view').classList.add('hidden');
+                    document.getElementById('category-selection-view').classList.remove('hidden');
+                }
+
                 function submitId() {
                     const details = document.getElementById('id-details').value.trim();
-                    if(!details) return alert('Please enter ID details!');
+                    if(!details) return alert('Please enter details!');
 
                     fetch('/api/submit', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ username: currentUser.username, details })
+                        body: JSON.stringify({ username: currentUser.username, category: activeCategory, details })
                     })
                     .then(res => res.json())
                     .then(data => {
@@ -245,11 +297,15 @@ app.get('/', (req, res) => {
                 }
 
                 function loadUserSubs() {
-                    fetch('/api/user/' + currentUser.username)
+                    fetch('/api/user/' + currentUser.username + '/' + activeCategory)
                     .then(res => res.json())
                     .then(data => {
                         let tbody = document.getElementById('user-subs-table');
                         tbody.innerHTML = '';
+                        if(data.submissions.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #64748b; padding: 15px;">No submissions in this category.</td></tr>';
+                            return;
+                        }
                         data.submissions.forEach(s => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
@@ -260,7 +316,7 @@ app.get('/', (req, res) => {
                 }
 
                 function deleteSub(id) {
-                    if(!confirm('Are you sure you want to delete this ID?')) return;
+                    if(!confirm('Are you sure you want to delete this?')) return;
                     fetch('/api/delete/' + id, { method: 'POST' })
                     .then(res => res.json())
                     .then(data => {
@@ -281,7 +337,7 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ==================== ২. আধুনিক অ্যাডমিন প্যানেল (লিঙ্ক: /admin) ====================
+// ==================== ২. অ্যাডমিন প্যানেল ====================
 app.get('/admin', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -289,7 +345,7 @@ app.get('/admin', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Admin Dashboard - Modern Sheet</title>
+            <title>Admin Dashboard - Category Wise</title>
             <style>
                 * { box-sizing: border-box; }
                 body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; margin: 0; padding: 10px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -301,18 +357,22 @@ app.get('/admin', (req, res) => {
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4); }
                 .hidden { display: none !important; }
 
-                /* Modern Admin Sheet Style */
-                .admin-container { max-width: 1300px !important; width: 100% !important; padding: 20px !important; border-radius: 14px; }
-                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+                /* Admin Container & Tabs */
+                .admin-container { max-width: 1300px !important; width: 100% !important; padding: 25px !important; border-radius: 14px; }
+                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
                 
+                .category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+                .tab-btn { background: #e2e8f0; color: #334155; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.2s; }
+                .tab-btn.active { background: #059669; color: white; box-shadow: 0 2px 6px rgba(5,150,105,0.3); }
+
                 .header-btns { display: flex; gap: 8px; flex-wrap: wrap; }
                 .action-global-btn { background: #2563eb; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 2px 6px rgba(37,99,235,0.3); display: flex; align-items: center; gap: 5px; }
-                .action-global-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+                .action-global-btn:hover { background: #1d4ed8; }
                 
-                .clear-btn { background: #dc2626 !important; box-shadow: 0 2px 6px rgba(220,38,38,0.3) !important; }
+                .clear-btn { background: #dc2626 !important; }
                 .clear-btn:hover { background: #b91c1c !important; }
 
-                .sheet-scroll-box { max-height: 550px; overflow-y: auto; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); }
+                .sheet-scroll-box { max-height: 500px; overflow-y: auto; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 10px; background: white; }
                 table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 950px; background: white; }
                 th, td { border: 1px solid #e2e8f0; padding: 10px 14px; text-align: left; white-space: nowrap; }
                 th { background: #0f172a; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
@@ -323,12 +383,12 @@ app.get('/admin', (req, res) => {
                 .sheet-details::-webkit-scrollbar { height: 4px; }
                 .sheet-details::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
                 
-                .received-btn { background: #059669; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 2px 4px rgba(5,150,105,0.2); }
+                .received-btn { background: #059669; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; }
                 .received-btn:hover { background: #047857; transform: scale(1.05); }
                 .received-text { color: #047857; font-weight: bold; text-align: center; display: inline-block; background: #d1fae5; padding: 4px 10px; border-radius: 6px; font-size: 11px; }
 
-                .row-download-btn { background: #4f46e5; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; box-shadow: 0 2px 4px rgba(79,70,229,0.2); margin-left: 6px; }
-                .row-download-btn:hover { background: #4338ca; transform: scale(1.05); }
+                .row-download-btn { background: #4f46e5; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 6px; }
+                .row-download-btn:hover { background: #4338ca; }
 
                 @media (max-width: 600px) {
                     body { padding: 5px; }
@@ -347,15 +407,23 @@ app.get('/admin', (req, res) => {
                 <button class="btn" onclick="adminLogin()">LOGIN</button>
             </div>
 
-            <!-- Admin Sheet View -->
+            <!-- Admin Dashboard -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #0f172a; font-size: 18px;">📊 Admin Panel - Live Submissions</h2>
+                    <h2 style="margin: 0; color: #0f172a; font-size: 18px;">📊 Admin Panel - Category Wise Submissions</h2>
                     <div class="header-btns">
-                        <button class="action-global-btn" onclick="downloadAllCSV()">📥 Download All (CSV)</button>
-                        <button class="action-global-btn clear-btn" onclick="clearAllSubmissions()">🗑️ Clear All</button>
+                        <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
+                        <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab Data</button>
                     </div>
                 </div>
+
+                <!-- Category Tabs -->
+                <div class="category-tabs" id="admin-tabs-container">
+                    ${CATEGORIES.map((cat, index) => `
+                        <button class="tab-btn ${index === 0 ? 'active' : ''}" onclick="switchAdminTab('${cat.id}', this)">${cat.name}</button>
+                    `).join('')}
+                </div>
+
                 <div class="sheet-scroll-box">
                     <table>
                         <thead>
@@ -363,7 +431,7 @@ app.get('/admin', (req, res) => {
                                 <th>SL</th>
                                 <th>Date & Time</th>
                                 <th>Telegram Username</th>
-                                <th>ID Details / Cookies</th>
+                                <th>Details / Cookies</th>
                                 <th>Action / Status</th>
                             </tr>
                         </thead>
@@ -374,6 +442,7 @@ app.get('/admin', (req, res) => {
 
             <script>
                 let allSubmissions = [];
+                let activeAdminCategory = '${CATEGORIES[0].id}';
 
                 function adminLogin() {
                     const pass = document.getElementById('admin-pass').value;
@@ -386,29 +455,42 @@ app.get('/admin', (req, res) => {
                     }
                 }
 
+                function switchAdminTab(catId, btnElement) {
+                    activeAdminCategory = catId;
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btnElement.classList.add('active');
+                    renderAdminTable();
+                }
+
                 function loadAdminSubs() {
                     fetch('/api/admin/submissions')
                     .then(res => res.json())
                     .then(data => {
                         allSubmissions = data.submissions;
-                        let tbody = document.getElementById('admin-subs-table');
-                        tbody.innerHTML = '';
+                        renderAdminTable();
+                    });
+                }
+
+                function renderAdminTable() {
+                    let tbody = document.getElementById('admin-subs-table');
+                    tbody.innerHTML = '';
+                    
+                    let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
+
+                    if(filtered.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No submissions found in this category.</td></tr>';
+                        return;
+                    }
+
+                    filtered.forEach((s, index) => {
+                        let actionColumn = s.status === 'success' 
+                            ? '<span class="received-text">RECEIVED</span>' 
+                            : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
                         
-                        if(allSubmissions.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No submissions found.</td></tr>';
-                            return;
-                        }
+                        let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥 Download</button>';
 
-                        allSubmissions.forEach((s, index) => {
-                            let actionColumn = s.status === 'success' 
-                                ? '<span class="received-text">RECEIVED</span>' 
-                                : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
-                            
-                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥 Download</button>';
-
-                            let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #4f46e5;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
-                        });
+                        let dateStr = new Date(s.date).toLocaleString();
+                        tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #4f46e5;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                     });
                 }
 
@@ -426,10 +508,11 @@ app.get('/admin', (req, res) => {
                     let sub = allSubmissions.find(s => s.id === id);
                     if(!sub) return alert('Data not found!');
 
-                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,ID Details,Status\\r\\n";
+                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\\r\\n";
                     let row = [
                         '"' + new Date(sub.date).toLocaleString() + '"',
                         '"@' + sub.username + '"',
+                        '"' + sub.category + '"',
                         '"' + sub.details.replace(/"/g, '""') + '"',
                         '"' + sub.status.toUpperCase() + '"'
                     ];
@@ -438,17 +521,18 @@ app.get('/admin', (req, res) => {
                     let encodedUri = encodeURI(csvContent);
                     let link = document.createElement("a");
                     link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", username + "_id_details.csv");
+                    link.setAttribute("download", username + "_" + sub.category + ".csv");
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                 }
 
-                function downloadAllCSV() {
-                    if(allSubmissions.length === 0) return alert('No data available to download!');
+                function downloadCategoryCSV() {
+                    let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
+                    if(filtered.length === 0) return alert('No data available to download in this category!');
                     
-                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,ID Details,Status\\r\\n";
-                    allSubmissions.forEach((s, index) => {
+                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\\r\\n";
+                    filtered.forEach((s, index) => {
                         let row = [
                             index + 1,
                             '"' + new Date(s.date).toLocaleString() + '"',
@@ -462,16 +546,16 @@ app.get('/admin', (req, res) => {
                     let encodedUri = encodeURI(csvContent);
                     let link = document.createElement("a");
                     link.setAttribute("href", encodedUri);
-                    link.setAttribute("download", "all_id_submissions.csv");
+                    link.setAttribute("download", activeAdminCategory + "_submissions.csv");
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
                 }
 
-                function clearAllSubmissions() {
-                    if(!confirm('Are you sure you want to clear ALL submissions? This cannot be undone!')) return;
+                function clearCategorySubmissions() {
+                    if(!confirm('Are you sure you want to clear all submissions in this category?')) return;
                     
-                    fetch('/api/admin/clear', {method: 'POST'})
+                    fetch('/api/admin/clear/' + activeAdminCategory, {method: 'POST'})
                     .then(res => res.json())
                     .then(data => {
                         if(data.success) {
@@ -513,12 +597,13 @@ app.post('/api/login', (req, res) => {
 });
 
 app.post('/api/submit', (req, res) => {
-    const { username, details } = req.body;
+    const { username, category, details } = req.body;
     const data = loadData();
     
     const submission = {
         id: Date.now().toString(),
         username,
+        category: category || 'instagram_2fa',
         details,
         status: 'pending',
         date: new Date().toISOString()
@@ -529,10 +614,10 @@ app.post('/api/submit', (req, res) => {
     res.json({ success: true });
 });
 
-app.get('/api/user/:username', (req, res) => {
-    const username = req.params.username;
+app.get('/api/user/:username/:category', (req, res) => {
+    const { username, category } = req.params;
     const data = loadData();
-    const userSubs = data.submissions.filter(s => s.username.toLowerCase() === username.toLowerCase());
+    const userSubs = data.submissions.filter(s => s.username.toLowerCase() === username.toLowerCase() && s.category === category);
     res.json({ success: true, submissions: userSubs });
 });
 
@@ -560,9 +645,10 @@ app.post('/api/admin/update/:id', (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/admin/clear', (req, res) => {
+app.post('/api/admin/clear/:category', (req, res) => {
+    const { category } = req.params;
     const data = loadData();
-    data.submissions = [];
+    data.submissions = data.submissions.filter(s => s.category !== category);
     saveData(data);
     res.json({ success: true });
 });
