@@ -12,7 +12,21 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 function loadData() {
     if (!fs.existsSync(DATA_FILE)) {
-        return { users: [], submissions: [], withdrawals: [], adminReports: {}, categoryPrizes: {}, claimedUids: {}, archivedSubmissions: [] };
+        return { 
+            users: [], 
+            submissions: [], 
+            withdrawals: [], 
+            adminReports: {}, 
+            categoryPrizes: {}, 
+            claimedUids: {}, 
+            archivedSubmissions: [],
+            categories: [
+                { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
+                { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
+                { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+                { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
+            ]
+        };
     }
     let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
     if (!data.withdrawals) data.withdrawals = [];
@@ -20,28 +34,20 @@ function loadData() {
     if (!data.categoryPrizes) data.categoryPrizes = {};
     if (!data.claimedUids) data.claimedUids = {};
     if (!data.archivedSubmissions) data.archivedSubmissions = [];
+    if (!data.categories) {
+        data.categories = [
+            { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
+            { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
+            { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+            { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
+        ];
+    }
     return data;
 }
 
 function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
-
-// সাবমিট ক্যাটেগরি লিস্ট (সঠিক আইকন ও গ্রেডিয়েন্টসহ)
-const CATEGORIES = [
-    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: 'fab fa-instagram', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
-    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: 'fab fa-facebook-f', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
-    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: 'fas fa-cookie-bite', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
-    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: 'fas fa-envelope', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
-];
-
-// রিপোর্ট সেকশনের ক্যাটেগরি লিস্ট
-const REPORT_CATEGORIES = [
-    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: 'fab fa-instagram', gradient: 'linear-gradient(135deg, #f09433 0%, #dc2743 100%)' },
-    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: 'fab fa-facebook-f', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
-    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: 'fas fa-cookie-bite', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
-    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: 'fas fa-envelope', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
-];
 
 // ==================== ১. ইউজার প্যানেল ====================
 app.get('/', (req, res) => {
@@ -51,9 +57,8 @@ app.get('/', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>By Sell - Secure ID Submission & Report Portal</title>
+            <title>Premium User Panel - ID & Payment Portal</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
                 * { box-sizing: border-box; }
                 body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
@@ -90,7 +95,7 @@ app.get('/', (req, res) => {
                 .cat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
                 .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
                 .cat-card:hover { transform: translateY(-6px); border-color: rgba(99, 102, 241, 0.5); background: rgba(30, 41, 59, 0.8); box-shadow: 0 20px 40px rgba(99,102,241,0.2); }
-                .cat-icon { font-size: 36px; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); color: #fff; }
+                .cat-icon { font-size: 40px; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
                 .cat-title { font-weight: 700; color: #f1f5f9; font-size: 15px; }
 
                 .back-btn { background: rgba(255, 255, 255, 0.1); width: auto; padding: 10px 20px; margin-bottom: 20px; font-size: 13px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -139,8 +144,8 @@ app.get('/', (req, res) => {
 
             <!-- Login View -->
             <div class="card" id="login-card">
-                <div class="icon-box"><i class="fas fa-lock"></i></div>
-                <h2>By Sell.</h2>
+                <div class="icon-box">🔐</div>
+                <h2>Welcome Back</h2>
                 <p class="subtitle">Secure ID Submission & Report Portal</p>
                 
                 <label>Email Address</label>
@@ -155,7 +160,7 @@ app.get('/', (req, res) => {
 
             <!-- Register View -->
             <div class="card hidden" id="register-card">
-                <div class="icon-box"><i class="fas fa-bolt"></i></div>
+                <div class="icon-box">⚡</div>
                 <h2>Create Account</h2>
                 <p class="subtitle">Join our exclusive platform</p>
                 
@@ -191,15 +196,15 @@ app.get('/', (req, res) => {
                         <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #38bdf8;"></span></p>
                     </div>
                     <div class="balance-badge">
-                        <span><i class="fas fa-wallet"></i> Balance:</span>
+                        <span>💰 Balance:</span>
                         <span class="balance-amount" id="user-balance-display">৳0.00</span>
                     </div>
                 </div>
 
                 <div class="user-nav-tabs">
-                    <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')"><i class="fas fa-file-arrow-up"></i> Submit IDs</button>
-                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')"><i class="fas fa-magnifying-glass"></i> UID Checker & Claim</button>
-                    <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')"><i class="fas fa-money-bill-transfer"></i> Withdraw / Payment</button>
+                    <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
+                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')">🔍 UID Checker & Claim</button>
+                    <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
                 </div>
 
                 <!-- Submit IDs Section -->
@@ -208,18 +213,11 @@ app.get('/', (req, res) => {
                         <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
                         <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
                         
-                        <div class="category-grid">
-                            ${CATEGORIES.map(cat => `
-                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'submit')">
-                                    <i class="${cat.icon} cat-icon"></i>
-                                    <div class="cat-title">${cat.name}</div>
-                                </div>
-                            `).join('')}
-                        </div>
+                        <div class="category-grid" id="user-submit-category-grid"></div>
                     </div>
 
                     <div id="category-form-view" class="hidden">
-                        <button class="btn back-btn" onclick="backToCategories()"><i class="fas fa-arrow-left"></i> Back to Categories</button>
+                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
                         <h3 id="active-category-title" style="color: #818cf8; margin-bottom: 15px; font-size: 20px;"></h3>
                         
                         <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
@@ -251,18 +249,11 @@ app.get('/', (req, res) => {
                         <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker & Claim</h3>
                         <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Check live UIDs and claim your rewards.</p>
                         
-                        <div class="category-grid">
-                            ${REPORT_CATEGORIES.map(cat => `
-                                <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'report')">
-                                    <i class="${cat.icon} cat-icon"></i>
-                                    <div class="cat-title">${cat.name}</div>
-                                </div>
-                            `).join('')}
-                        </div>
+                        <div class="category-grid" id="user-report-category-grid"></div>
                     </div>
 
                     <div id="report-checker-view" class="hidden">
-                        <button class="btn back-btn" onclick="backToCategories()"><i class="fas fa-arrow-left"></i> Back to Categories</button>
+                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
                         <h3 id="active-report-category-title" style="color: #38bdf8; margin-bottom: 15px; font-size: 20px;"></h3>
 
                         <div class="checker-box">
@@ -321,15 +312,17 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
-                <button class="btn logout-btn" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Logout</button>
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
             </div>
 
             <script>
                 let currentUser = null;
                 let activeCategory = null;
                 let activeMode = 'submit';
+                let dynamicCategories = [];
 
                 window.onload = function() {
+                    loadCategoriesAndInit();
                     const savedUser = localStorage.getItem('portal_current_user');
                     if(savedUser) {
                         currentUser = JSON.parse(savedUser);
@@ -339,6 +332,41 @@ app.get('/', (req, res) => {
                         switchUserTab('submit');
                     }
                 };
+
+                function loadCategoriesAndInit(callback) {
+                    fetch('/api/categories')
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            dynamicCategories = data.categories;
+                            renderUserCategoryGrids();
+                            if(callback) callback();
+                        }
+                    });
+                }
+
+                function renderUserCategoryGrids() {
+                    let submitGrid = document.getElementById('user-submit-category-grid');
+                    let reportGrid = document.getElementById('user-report-category-grid');
+                    
+                    submitGrid.innerHTML = '';
+                    reportGrid.innerHTML = '';
+
+                    dynamicCategories.forEach(cat => {
+                        submitGrid.innerHTML += \`
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'submit')">
+                                <span class="cat-icon">\${cat.icon}</span>
+                                <div class="cat-title">\${cat.name}</div>
+                            </div>
+                        \`;
+                        reportGrid.innerHTML += \`
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'report')">
+                                <span class="cat-icon">\${cat.icon}</span>
+                                <div class="cat-title">\${cat.name}</div>
+                            </div>
+                        \`;
+                    });
+                }
 
                 function showRegister() {
                     document.getElementById('login-card').classList.add('hidden');
@@ -421,6 +449,7 @@ app.get('/', (req, res) => {
                 }
 
                 function switchUserTab(tab) {
+                    loadCategoriesAndInit();
                     document.getElementById('tab-btn-submit').classList.remove('active');
                     document.getElementById('tab-btn-report').classList.remove('active');
                     document.getElementById('tab-btn-withdraw').classList.remove('active');
@@ -670,14 +699,13 @@ app.get('/admin', (req, res) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Premium Admin Dashboard</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
                 * { box-sizing: border-box; }
                 body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
                 .card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 440px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
                 h2 { text-align: center; color: #f8fafc; margin-bottom: 25px; font-weight: 700; font-size: 22px; }
-                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(3, 7, 18, 0.6); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
-                input:focus, textarea:focus { border-color: #10b981; background: rgba(3, 7, 18, 0.9); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+                input, textarea, select { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(3, 7, 18, 0.6); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
+                input:focus, textarea:focus, select:focus { border-color: #10b981; background: rgba(3, 7, 18, 0.9); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
                 .btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-family: inherit; }
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.6); }
                 .hidden { display: none !important; }
@@ -685,9 +713,12 @@ app.get('/admin', (req, res) => {
                 .admin-container { max-width: 1350px !important; padding: 35px !important; border-radius: 24px; }
                 .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
                 
-                .category-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
+                .category-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 12px; align-items: center; }
                 .tab-btn { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
                 .tab-btn.active { background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
+
+                .add-cat-tab-btn { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
+                .delete-cat-btn { background: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; cursor: pointer; margin-left: 8px; }
 
                 .admin-sub-nav { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
                 .sub-nav-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
@@ -735,25 +766,19 @@ app.get('/admin', (req, res) => {
             <!-- Admin Dashboard -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;"><i class="fas fa-chart-bar"></i> Admin Panel - Category & Report Control</h2>
+                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;">📊 Admin Panel - Dynamic Category & Control</h2>
                     <div class="header-btns" id="admin-top-btns">
-                        <button class="action-global-btn" onclick="downloadCategoryCSV()"><i class="fas fa-download"></i> Download Tab (CSV)</button>
-                        <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()"><i class="fas fa-trash"></i> Clear Tab & Archive</button>
+                        <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
+                        <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab & Archive</button>
                     </div>
                 </div>
 
-                <div class="category-tabs" id="admin-tabs-container">
-                    ${CATEGORIES.map((cat, index) => `
-                        <button class="tab-btn ${index === 0 ? 'active' : ''}" onclick="switchAdminTab('${cat.id}', this)">${cat.name}</button>
-                    `).join('')}
-                    <button class="tab-btn" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
-                    <button class="tab-btn" onclick="switchAdminTab('archives', this)" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📦 Archived UIDs / IDs</button>
-                </div>
+                <div class="category-tabs" id="admin-tabs-container"></div>
 
                 <!-- Admin Sub View Toggle -->
                 <div class="admin-sub-nav" id="admin-sub-nav-container">
-                    <button class="sub-nav-btn active" id="sub-view-subs" onclick="switchAdminSubView('submissions')"><i class="fas fa-inbox"></i> User Submissions</button>
-                    <button class="sub-nav-btn" id="sub-view-report" onclick="switchAdminSubView('report')"><i class="fas fa-gears"></i> Manage Report UIDs & Prize</button>
+                    <button class="sub-nav-btn active" id="sub-view-subs" onclick="switchAdminSubView('submissions')">📥 User Submissions</button>
+                    <button class="sub-nav-btn" id="sub-view-report" onclick="switchAdminSubView('report')">⚙️ Manage Report UIDs & Prize</button>
                 </div>
 
                 <!-- Submissions View Box -->
@@ -831,7 +856,8 @@ app.get('/admin', (req, res) => {
                 let adminReports = {};
                 let categoryPrizes = {};
                 let archivedSubmissions = [];
-                let activeAdminCategory = '${CATEGORIES[0].id}';
+                let dynamicCategories = [];
+                let activeAdminCategory = '';
                 let activeAdminSubView = 'submissions';
 
                 function adminLogin() {
@@ -854,10 +880,100 @@ app.get('/admin', (req, res) => {
                     });
                 }
 
+                function loadAdminData(callback) {
+                    fetch('/api/admin/data')
+                    .then(res => res.json())
+                    .then(data => {
+                        allSubmissions = data.submissions;
+                        allWithdrawals = data.withdrawals;
+                        adminReports = data.adminReports || {};
+                        categoryPrizes = data.categoryPrizes || {};
+                        archivedSubmissions = data.archivedSubmissions || [];
+                        dynamicCategories = data.categories || [];
+
+                        if(!activeAdminCategory && dynamicCategories.length > 0) {
+                            activeAdminCategory = dynamicCategories[0].id;
+                        }
+
+                        renderAdminTabs();
+                        renderAdminTable();
+                        if(activeAdminSubView === 'report') {
+                            renderSavedUidsHistory();
+                        }
+                        if(activeAdminCategory === 'archives') {
+                            renderArchiveTable();
+                        }
+                        if(callback) callback();
+                    });
+                }
+
+                function renderAdminTabs() {
+                    let container = document.getElementById('admin-tabs-container');
+                    container.innerHTML = '';
+
+                    dynamicCategories.forEach(cat => {
+                        let isActive = (activeAdminCategory === cat.id) ? 'active' : '';
+                        container.innerHTML += \`
+                            <button class="tab-btn \${isActive}" onclick="switchAdminTab('\${cat.id}', this)">
+                                \${cat.name}
+                                <span onclick="event.stopPropagation(); deleteCategory('\${cat.id}')" class="delete-cat-btn" title="Delete Category">❌</span>
+                            </button>
+                        \`;
+                    });
+
+                    let isWithActive = (activeAdminCategory === 'withdrawals') ? 'active' : '';
+                    let isArcActive = (activeAdminCategory === 'archives') ? 'active' : '';
+
+                    container.innerHTML += \`
+                        <button class="tab-btn \${isWithActive}" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
+                        <button class="tab-btn \${isArcActive}" onclick="switchAdminTab('archives', this)" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📦 Archived UIDs / IDs</button>
+                        <button class="add-cat-tab-btn" onclick="addNewCategoryPrompt()">➕ Add Category</button>
+                    \`;
+                }
+
+                function addNewCategoryPrompt() {
+                    let catName = prompt('Enter new category name:');
+                    if(!catName) return;
+                    let icon = prompt('Enter emoji icon (e.g. 📁 or 💡):', '📁');
+
+                    fetch('/api/admin/add-category', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ name: catName, icon })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            loadAdminData(() => {
+                                alert('Category added successfully!');
+                            });
+                        }
+                    });
+                }
+
+                function deleteCategory(catId) {
+                    if(dynamicCategories.length <= 1) return alert('You must keep at least one category!');
+                    if(!confirm('Are you sure you want to delete this category? All submissions under it may be affected.')) return;
+
+                    fetch('/api/admin/delete-category', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ id: catId })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            dynamicCategories = data.categories;
+                            activeAdminCategory = dynamicCategories[0].id;
+                            loadAdminData();
+                            alert('Category deleted successfully!');
+                        }
+                    });
+                }
+
                 function switchAdminTab(catId, btnElement) {
                     activeAdminCategory = catId;
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btnElement.classList.add('active');
+                    renderAdminTabs();
 
                     if(catId === 'withdrawals' || catId === 'archives') {
                         document.getElementById('admin-sub-nav-container').classList.add('hidden');
@@ -902,25 +1018,6 @@ app.get('/admin', (req, res) => {
                         document.getElementById('admin-category-prize').value = categoryPrizes[activeAdminCategory] || '';
                         renderSavedUidsHistory();
                     }
-                }
-
-                function loadAdminData() {
-                    fetch('/api/admin/data')
-                    .then(res => res.json())
-                    .then(data => {
-                        allSubmissions = data.submissions;
-                        allWithdrawals = data.withdrawals;
-                        adminReports = data.adminReports || {};
-                        categoryPrizes = data.categoryPrizes || {};
-                        archivedSubmissions = data.archivedSubmissions || [];
-                        renderAdminTable();
-                        if(activeAdminSubView === 'report') {
-                            renderSavedUidsHistory();
-                        }
-                        if(activeAdminCategory === 'archives') {
-                            renderArchiveTable();
-                        }
-                    });
                 }
 
                 function renderAdminTable() {
@@ -1148,6 +1245,42 @@ app.get('/admin', (req, res) => {
 });
 
 // ==================== API ENDPOINTS ====================
+app.get('/api/categories', (req, res) => {
+    const data = loadData();
+    res.json({ success: true, categories: data.categories });
+});
+
+app.post('/api/admin/add-category', (req, res) => {
+    const { name, icon } = req.body;
+    const data = loadData();
+    
+    const id = name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
+    const gradients = [
+        'linear-gradient(135deg, #f09433 0%, #dc2743 100%)',
+        'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)',
+        'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)',
+        'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)',
+        'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+        'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)'
+    ];
+    const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+
+    const newCat = { id, name, icon: icon || '📁', gradient: randomGradient };
+    
+    data.categories.push(newCat);
+    saveData(data);
+    res.json({ success: true, categories: data.categories });
+});
+
+app.post('/api/admin/delete-category', (req, res) => {
+    const { id } = req.body;
+    const data = loadData();
+    
+    data.categories = data.categories.filter(c => c.id !== id);
+    saveData(data);
+    res.json({ success: true, categories: data.categories });
+});
+
 app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
@@ -1198,7 +1331,7 @@ app.post('/api/submit', (req, res) => {
     const submission = {
         id: Date.now().toString(),
         username,
-        category: category || 'instagram_2fa',
+        category: category,
         details,
         status: 'pending',
         date: new Date().toISOString()
@@ -1345,7 +1478,8 @@ app.get('/api/admin/data', (req, res) => {
         withdrawals: data.withdrawals,
         adminReports: data.adminReports || {},
         categoryPrizes: data.categoryPrizes || {},
-        archivedSubmissions: data.archivedSubmissions || []
+        archivedSubmissions: data.archivedSubmissions || [],
+        categories: data.categories || []
     });
 });
 
