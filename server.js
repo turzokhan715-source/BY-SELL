@@ -3,14 +3,11 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
+const PORT = process.env.PORT || 10000;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-// এটি নতুন যোগ করতে হবে যাতে রুট ইউআরএল-এ index.html ওপেন হয়
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 
@@ -25,4 +22,73 @@ function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// বাকি রাউট বা কোড যদি থাকে নিচে থাকবে...
+// রুট রাউট
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ইউজার রেজিস্ট্রেশন/লগইন
+app.post('/api/login', (req, res) => {
+    let { username } = req.body;
+    if (!username) return res.status(400).json({ success: false, message: 'Username required' });
+    
+    username = username.trim().replace(/^@/, '');
+    const data = loadData();
+    let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    
+    if (!user) {
+        user = { username, createdAt: new Date().toISOString() };
+        data.users.push(user);
+        saveData(data);
+    }
+    res.json({ success: true, user });
+});
+
+// আইডি সাবমিট করা
+app.post('/api/submit', (req, res) => {
+    const { username, details } = req.body;
+    if (!username || !details) return res.status(400).json({ success: false, message: 'All fields required' });
+
+    const data = loadData();
+    const submission = {
+        id: Date.now().toString(),
+        username: username.trim().replace(/^@/, ''),
+        details,
+        status: 'pending',
+        date: new Date().toISOString()
+    };
+
+    data.submissions.push(submission);
+    saveData(data);
+    res.json({ success: true, message: 'Submitted successfully' });
+});
+
+// ইউজারের স্ট্যাটাস চেক
+app.get('/api/user/:username', (req, res) => {
+    const username = req.params.username.trim().replace(/^@/, '');
+    const data = loadData();
+    const userSubs = data.submissions.filter(s => s.username.toLowerCase() === username.toLowerCase());
+    res.json({ success: true, submissions: userSubs });
+});
+
+// অ্যাডমিন ডাটা দেখা
+app.get('/api/admin/submissions', (req, res) => {
+    const data = loadData();
+    res.json({ success: true, submissions: data.submissions });
+});
+
+// অ্যাডমিন স্ট্যাটাস আপডেট (Received মার্ক করা)
+app.post('/api/admin/update/:id', (req, res) => {
+    const { id } = req.params;
+    const data = loadData();
+    const sub = data.submissions.find(s => s.id === id);
+    if (!sub) return res.status(404).json({ success: false, message: 'Submission not found' });
+
+    sub.status = 'success';
+    saveData(data);
+    res.json({ success: true, message: 'Updated to success' });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
