@@ -393,15 +393,14 @@ app.get('/', (req, res) => {
                     reportGrid.innerHTML = '';
 
                     dynamicCategories.forEach(cat => {
-                        let safeName = cat.name.replace(/'/g, "\\\\'");
                         submitGrid.innerHTML += \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${safeName}', 'home')">
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'home')">
                                 <span class="cat-icon">\${cat.icon}</span>
                                 <div class="cat-title">\${cat.name}</div>
                             </div>
                         \`;
                         reportGrid.innerHTML += \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${safeName}', 'report')">
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'report')">
                                 <span class="cat-icon">\${cat.icon}</span>
                                 <div class="cat-title">\${cat.name}</div>
                             </div>
@@ -1334,9 +1333,10 @@ app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
     
-    let existingUser = data.users.find(u => u.email === email || u.username === username);
+    // Check unique email or username
+    let existingUser = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() || u.username.toLowerCase() === username.replace(/^@/, '').toLowerCase());
     if(existingUser) {
-        return res.json({ success: false, message: 'Email or Username already exists!' });
+        return res.json({ success: false, message: 'This email or username is already registered!' });
     }
 
     data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password, balance: 0 });
@@ -1348,7 +1348,7 @@ app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const data = loadData();
     
-    let user = data.users.find(u => u.email === email && u.password === password);
+    let user = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
     if(!user) {
         return res.json({ success: false, message: 'Invalid email or password!' });
     }
@@ -1515,6 +1515,7 @@ app.post('/api/withdraw', (req, res) => {
 app.get('/api/user/withdrawals/:username', (req, res) => {
     const { username } = req.params;
     const data = loadData();
+    // কেস-সেন্সিটিভিটি সমস্যা দূর করতে toLowerCase() দিয়ে ফিল্টার করা হয়েছে যাতে ইউজারের হিস্ট্রি সঠিকভাবে শো করে
     const userWithdraws = data.withdrawals.filter(w => w.username.toLowerCase() === username.toLowerCase());
     res.json({ success: true, withdrawals: userWithdraws });
 });
