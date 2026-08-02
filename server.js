@@ -393,18 +393,18 @@ app.get('/', (req, res) => {
                     reportGrid.innerHTML = '';
 
                     dynamicCategories.forEach(cat => {
-                        submitGrid.innerHTML += \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'home')">
-                                <span class="cat-icon">\${cat.icon}</span>
-                                <div class="cat-title">\${cat.name}</div>
+                        submitGrid.innerHTML += `
+                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'home')">
+                                <span class="cat-icon">${cat.icon}</span>
+                                <div class="cat-title">${cat.name}</div>
                             </div>
-                        \`;
-                        reportGrid.innerHTML += \`
-                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${cat.name.replace(/'/g, "\\\\'")}', 'report')">
-                                <span class="cat-icon">\${cat.icon}</span>
-                                <div class="cat-title">\${cat.name}</div>
+                        `;
+                        reportGrid.innerHTML += `
+                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'report')">
+                                <span class="cat-icon">${cat.icon}</span>
+                                <div class="cat-title">${cat.name}</div>
                             </div>
-                        \`;
+                        `;
                     });
                 }
 
@@ -550,7 +550,7 @@ app.get('/', (req, res) => {
                     const text = document.getElementById('checker-input-uids').value.trim();
                     if(!text) return alert('Please enter UIDs to check!');
 
-                    const userUids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
+                    const userUids = text.split('\n').map(u => u.trim()).filter(u => u.length > 0);
 
                     fetch('/api/user/check-uids', {
                         method: 'POST',
@@ -567,7 +567,7 @@ app.get('/', (req, res) => {
                             const unclaimableLiveCount = results.filter(r => r.isLive && !r.isClaimed).length;
                             if(unclaimableLiveCount > 0) {
                                 const totalLivePrize = unclaimableLiveCount * (results[0].prize || 0);
-                                outputBox.innerHTML += \`<button class="claim-all-btn" onclick="claimAllUids()">🔥 CLAIM ALL LIVE UIDs (\${unclaimableLiveCount} IDs - ৳\${totalLivePrize})</button>\`;
+                                outputBox.innerHTML += `<button class="claim-all-btn" onclick="claimAllUids()">🔥 CLAIM ALL LIVE UIDs (${unclaimableLiveCount} IDs - ৳${totalLivePrize})</button>`;
                             }
 
                             results.forEach(r => {
@@ -575,17 +575,17 @@ app.get('/', (req, res) => {
                                 if(r.isClaimed) {
                                     badgeHtml = '<span class="badge-claimed">ALREADY CLAIMED</span>';
                                 } else if(r.isLive) {
-                                    badgeHtml = '<button class="claim-btn" onclick="claimUid(\\'' + r.uid + '\\')">CLAIM ৳' + r.prize + '</button>';
+                                    badgeHtml = '<button class="claim-btn" onclick="claimUid(\'' + r.uid + '\')">CLAIM ৳' + r.prize + '</button>';
                                 } else {
                                     badgeHtml = '<span class="badge-die">DIE</span>';
                                 }
 
-                                outputBox.innerHTML += \`
+                                outputBox.innerHTML += `
                                     <div class="uid-result-row">
-                                        <span class="uid-text">\${r.uid}</span>
-                                        \${badgeHtml}
+                                        <span class="uid-text">${r.uid}</span>
+                                        ${badgeHtml}
                                     </div>
-                                \`;
+                                `;
                             });
                         } else {
                             alert(data.message);
@@ -662,7 +662,7 @@ app.get('/', (req, res) => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
                             let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\\'' + s.id + '\\')">Delete</button></td></tr>';
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\'' + s.id + '\')">Delete</button></td></tr>';
                         });
                     });
                 }
@@ -961,22 +961,22 @@ app.get('/admin', (req, res) => {
 
                     dynamicCategories.forEach(cat => {
                         let isActive = (activeAdminCategory === cat.id) ? 'active' : '';
-                        container.innerHTML += \`
-                            <button class="tab-btn \${isActive}" onclick="switchAdminTab('\${cat.id}', this)">
-                                \${cat.name}
-                                <span onclick="event.stopPropagation(); deleteCategory('\${cat.id}')" class="delete-cat-btn" title="Delete Category">❌</span>
+                        container.innerHTML += `
+                            <button class="tab-btn ${isActive}" onclick="switchAdminTab('${cat.id}', this)">
+                                ${cat.name}
+                                <span onclick="event.stopPropagation(); deleteCategory('${cat.id}')" class="delete-cat-btn" title="Delete Category">❌</span>
                             </button>
-                        \`;
+                        `;
                     });
 
                     let isWithActive = (activeAdminCategory === 'withdrawals') ? 'active' : '';
                     let isArcActive = (activeAdminCategory === 'archives') ? 'active' : '';
 
-                    container.innerHTML += \`
-                        <button class="tab-btn \${isWithActive}" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
-                        <button class="tab-btn \${isArcActive}" onclick="switchAdminTab('archives', this)" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📦 Archived UIDs / IDs</button>
+                    container.innerHTML += `
+                        <button class="tab-btn ${isWithActive}" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
+                        <button class="tab-btn ${isArcActive}" onclick="switchAdminTab('archives', this)" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📦 Archived UIDs / IDs</button>
                         <button class="add-cat-tab-btn" onclick="addNewCategoryPrompt()">➕ Add Category</button>
-                    \`;
+                    `;
                 }
 
                 function addNewCategoryPrompt() {
@@ -1084,7 +1084,7 @@ app.get('/admin', (req, res) => {
                         allWithdrawals.forEach((w, index) => {
                             let actionCol = w.status === 'success' 
                                 ? '<span class="received-text">SUCCESS</span>' 
-                                : '<button class="received-btn" onclick="approveWithdraw(\\'' + w.id + '\\')">Approve / Pay</button>';
+                                : '<button class="received-btn" onclick="approveWithdraw(\'' + w.id + '\')">Approve / Pay</button>';
                             
                             let dateStr = new Date(w.date).toLocaleString();
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + w.username + '</strong></td><td>' + w.method + ' - <strong>' + w.phone + '</strong></td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;">' + actionCol + '</td></tr>';
@@ -1107,10 +1107,10 @@ app.get('/admin', (req, res) => {
                             if(s.status === 'success') {
                                 actionColumn = '<span class="received-text">RECEIVED</span>';
                             } else {
-                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\\'' + s.id + '\\', \\'' + s.username + '\\')">Received & Pay</button></div>';
+                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\'' + s.id + '\', \'' + s.username + '\')">Received & Pay</button></div>';
                             }
                             
-                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥</button>';
+                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\'' + s.username + '\', \'' + s.id + '\')">📥</button>';
                             let dateStr = new Date(s.date).toLocaleString();
                             
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
@@ -1143,20 +1143,20 @@ app.get('/admin', (req, res) => {
                     }
 
                     uidsList.forEach((uid, index) => {
-                        tbody.innerHTML += \`
+                        tbody.innerHTML += `
                             <tr>
-                                <td style="text-align: center; font-weight: 600;">\${index + 1}</td>
-                                <td style="font-family: monospace; color: #38bdf8;">\${uid}</td>
-                                <td style="text-align: center;"><button class="delete-btn" onclick="deleteSavedUid('\${uid}')">Delete</button></td>
+                                <td style="text-align: center; font-weight: 600;">${index + 1}</td>
+                                <td style="font-family: monospace; color: #38bdf8;">${uid}</td>
+                                <td style="text-align: center;"><button class="delete-btn" onclick="deleteSavedUid('${uid}')">Delete</button></td>
                             </tr>
-                        \`;
+                        `;
                     });
                 }
 
                 function saveAdminReportAndPrize() {
                     const text = document.getElementById('admin-report-textarea').value.trim();
                     const prize = parseFloat(document.getElementById('admin-category-prize').value) || 0;
-                    const newUids = text ? text.split('\\n').map(u => u.trim()).filter(u => u.length > 0) : [];
+                    const newUids = text ? text.split('\n').map(u => u.trim()).filter(u => u.length > 0) : [];
 
                     fetch('/api/admin/save-report', {
                         method: 'POST',
@@ -1228,7 +1228,7 @@ app.get('/admin', (req, res) => {
                     let sub = allSubmissions.find(s => s.id === id);
                     if(!sub) return alert('Data not found!');
 
-                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\\r\\n";
+                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\r\n";
                     let row = [
                         '"' + new Date(sub.date).toLocaleString() + '"',
                         '"@' + sub.username + '"',
@@ -1236,7 +1236,7 @@ app.get('/admin', (req, res) => {
                         '"' + sub.details.replace(/"/g, '""') + '"',
                         '"' + sub.status.toUpperCase() + '"'
                     ];
-                    csvContent += row.join(",") + "\\r\\n";
+                    csvContent += row.join(",") + "\r\n";
 
                     let encodedUri = encodeURI(csvContent);
                     let link = document.createElement("a");
@@ -1252,7 +1252,7 @@ app.get('/admin', (req, res) => {
                     let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
                     if(filtered.length === 0) return alert('No data available to download in this category!');
                     
-                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\\r\\n";
+                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\r\n";
                     filtered.forEach((s, index) => {
                         let row = [
                             index + 1,
@@ -1261,7 +1261,7 @@ app.get('/admin', (req, res) => {
                             '"' + s.details.replace(/"/g, '""') + '"',
                             '"' + s.status.toUpperCase() + '"'
                         ];
-                        csvContent += row.join(",") + "\\r\\n";
+                        csvContent += row.join(",") + "\r\n";
                     });
 
                     let encodedUri = encodeURI(csvContent);
@@ -1329,13 +1329,19 @@ app.post('/api/admin/delete-category', (req, res) => {
     res.json({ success: true, categories: data.categories });
 });
 
+// এক মেইলে একটি অ্যাকাউন্ট খোলার চেকিং (Duplicate Email Prevention)
 app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
     
-    let existingUser = data.users.find(u => u.email === email || u.username === username);
+    let existingUser = data.users.find(u => u.email.toLowerCase() === email.toLowerCase());
     if(existingUser) {
-        return res.json({ success: false, message: 'Email or Username already exists!' });
+        return res.json({ success: false, message: 'This email is already registered! Please use another email.' });
+    }
+
+    let existingUsername = data.users.find(u => u.username.toLowerCase() === username.toLowerCase().replace(/^@/, ''));
+    if(existingUsername) {
+        return res.json({ success: false, message: 'Username already exists!' });
     }
 
     data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password, balance: 0 });
@@ -1347,7 +1353,7 @@ app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const data = loadData();
     
-    let user = data.users.find(u => u.email === email && u.password === password);
+    let user = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
     if(!user) {
         return res.json({ success: false, message: 'Invalid email or password!' });
     }
@@ -1485,6 +1491,7 @@ app.post('/api/user/claim-all', (req, res) => {
     res.json({ success: true, message: `Successfully claimed ${unclaimedLiveUids.length} UIDs! Total ৳${totalReward} added to your balance.` });
 });
 
+// পেমেন্ট/উইথড্র রিকোয়েস্ট সাবমিট করার লজিক (যা ইউজারের হিস্ট্রিতে পেন্ডিং দেখাবে)
 app.post('/api/withdraw', (req, res) => {
     const { username, method, phone, amount } = req.body;
     const data = loadData();
@@ -1501,11 +1508,12 @@ app.post('/api/withdraw', (req, res) => {
         username,
         method,
         phone,
-        amount,
-        status: 'pending',
+        amount: parseFloat(amount),
+        status: 'pending', // প্রাথমিক স্ট্যাটাস পেন্ডিং থাকবে
         date: new Date().toISOString()
     };
 
+    if(!data.withdrawals) data.withdrawals = [];
     data.withdrawals.push(withdrawal);
     saveData(data);
     res.json({ success: true });
@@ -1574,12 +1582,13 @@ app.post('/api/admin/update-submission', (req, res) => {
     res.json({ success: true });
 });
 
+// অ্যাডমিন প্যানেল থেকে পেমেন্ট রিকোয়েস্ট অ্যাপ্রুভ করলে সাকসেস (success) করার লজিক
 app.post('/api/admin/approve-withdraw/:id', (req, res) => {
     const { id } = req.params;
     const data = loadData();
     let w = data.withdrawals.find(item => item.id === id);
     if(w) {
-        w.status = 'success';
+        w.status = 'success'; // স্ট্যাটাস সাকসেস আপডেট হবে
         saveData(data);
     }
     res.json({ success: true });
