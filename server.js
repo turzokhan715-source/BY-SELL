@@ -46,15 +46,20 @@ app.get('/', (req, res) => {
                 .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
-                /* Responsive Dashboard Container */
-                .dashboard-container { max-width: 950px !important; width: 100% !important; padding: 30px; }
-                .table-responsive { max-height: 420px; overflow-y: auto; overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 14px; margin-top: 15px; background: white; }
-                table { width: 100%; border-collapse: collapse; min-width: 650px; }
-                th, td { border-bottom: 1px solid #f3f4f6; padding: 14px 18px; text-align: center; font-size: 14px; }
-                th { background: #f8fafc; color: #374151; position: sticky; top: 0; z-index: 10; font-weight: 700; }
-                td.details-cell { max-width: 400px; word-break: break-all; text-align: left; max-height: 100px; overflow-y: auto; display: block; font-family: monospace; background: #f9fafb; padding: 8px; border-radius: 6px; }
-                .status-pending { color: #d97706; font-weight: 700; background: #fef3c7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
-                .status-success { color: #16a34a; font-weight: 700; background: #dcfce7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; }
+                /* Google Sheet Style Responsive Dashboard Container */
+                .dashboard-container { max-width: 1000px !important; width: 100% !important; padding: 30px; }
+                .sheet-scroll-box { max-height: 450px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; margin-top: 15px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                table { width: 100%; border-collapse: collapse; min-width: 700px; background: white; font-size: 14px; }
+                th, td { border: 1px solid #d1d5db; padding: 12px 16px; text-align: left; }
+                th { background: #f8fafc; color: #374151; position: sticky; top: 0; z-index: 10; font-weight: 700; text-align: center; }
+                td { color: #1f2937; }
+                tr:nth-child(even) td { background: #f8fafc; }
+                
+                /* Sheet Style Details Cell with inner scroll for long cookies */
+                .sheet-details { max-width: 500px; max-height: 80px; overflow-y: auto; overflow-x: auto; word-break: break-all; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 4px; border: 1px solid #eee; }
+                
+                .status-pending { color: #d97706; font-weight: 700; background: #fef3c7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; text-align: center; }
+                .status-success { color: #16a34a; font-weight: 700; background: #dcfce7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; text-align: center; }
                 .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 25px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
                 .logout-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
 
@@ -114,11 +119,9 @@ app.get('/', (req, res) => {
 
             <!-- User Dashboard -->
             <div class="card dashboard-container hidden" id="dashboard-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <div>
-                        <h2 style="text-align: left; margin: 0;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
-                        <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
-                    </div>
+                <div>
+                    <h2 style="text-align: left; margin: 0;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
+                    <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
                 </div>
                 
                 <div style="margin-top: 25px;">
@@ -127,13 +130,13 @@ app.get('/', (req, res) => {
                     <button class="btn" onclick="submitId()" style="width: 200px;">Submit Now</button>
                 </div>
 
-                <h3 style="margin-top: 35px; color: #111827; font-size: 18px;">Submission History</h3>
-                <div class="table-responsive">
+                <h3 style="margin-top: 35px; color: #111827; font-size: 18px;">Google Sheet Format - History</h3>
+                <div class="sheet-scroll-box">
                     <table>
                         <thead>
                             <tr>
                                 <th>Date & Time</th>
-                                <th>Details</th>
+                                <th>ID Details</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -237,7 +240,7 @@ app.get('/', (req, res) => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
                             let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="details-cell">' + s.details + '</div></td><td><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
                         });
                     });
                 }
@@ -273,15 +276,18 @@ app.get('/admin', (req, res) => {
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 124, 65, 0.4); }
                 .hidden { display: none !important; }
 
-                /* Google Sheet Responsive Style */
-                .admin-container { max-width: 1150px !important; width: 100% !important; padding: 25px; }
-                .sheet-scroll-box { max-height: 580px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 750px; background: white; }
-                th, td { border: 1px solid #d1d5db; padding: 12px 18px; text-align: left; }
+                /* Google Sheet Style Admin Container */
+                .admin-container { max-width: 1200px !important; width: 100% !important; padding: 25px; }
+                .sheet-scroll-box { max-height: 580px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: white; }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; background: white; }
+                th, td { border: 1px solid #d1d5db; padding: 12px 16px; text-align: left; }
                 th { background: #107c41; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
                 td { background: #ffffff; color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
-                td.admin-details { max-width: 450px; word-break: break-all; max-height: 120px; overflow-y: auto; display: block; font-family: monospace; background: #fdfdfd; padding: 8px; border-radius: 4px; border: 1px solid #eee; }
+                
+                /* Sheet Style Details Box */
+                .sheet-details { max-width: 450px; max-height: 100px; overflow-y: auto; overflow-x: auto; word-break: break-all; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 4px; border: 1px solid #eee; }
+                
                 .received-btn { background: #107c41; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(16,124,65,0.2); }
                 .received-btn:hover { background: #0b5c31; transform: scale(1.05); }
                 .received-text { color: #107c41; font-weight: bold; text-align: center; display: block; background: #dcfce7; padding: 6px; border-radius: 6px; }
@@ -344,7 +350,7 @@ app.get('/admin', (req, res) => {
                                 : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
                             
                             let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #4f46e5;">@' + s.username + '</strong></td><td><div class="admin-details">' + s.details + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
+                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #4f46e5;">@' + s.username + '</strong></td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                         });
                     });
                 }
