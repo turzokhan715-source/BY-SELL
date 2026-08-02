@@ -83,11 +83,13 @@ app.get('/', (req, res) => {
                 
                 .dashboard-container { max-width: 950px !important; padding: 35px !important; }
                 
+                /* Sidebar & Header Navbar */
                 .navbar-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
                 .menu-toggle-btn { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); width: 50px; height: 50px; border-radius: 14px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 6px; cursor: pointer; transition: 0.3s; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
                 .menu-toggle-btn:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.15); }
                 .menu-toggle-btn span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; }
 
+                /* Sidebar Overlay & Content */
                 .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); z-index: 998; opacity: 0; visibility: hidden; transition: 0.3s ease; }
                 .sidebar-overlay.active { opacity: 1; visibility: visible; }
 
@@ -391,25 +393,20 @@ app.get('/', (req, res) => {
                     reportGrid.innerHTML = '';
 
                     dynamicCategories.forEach(cat => {
-                        submitGrid.innerHTML += `
-                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" data-cat-id="${cat.id}" data-cat-name="${cat.name.replace(/"/g, '&quot;')}" onclick="openCategoryFromCard(this, 'home')">
-                                <span class="cat-icon">${cat.icon}</span>
-                                <div class="cat-title">${cat.name}</div>
+                        let safeName = cat.name.replace(/'/g, "\\\\'");
+                        submitGrid.innerHTML += \`
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${safeName}', 'home')">
+                                <span class="cat-icon">\${cat.icon}</span>
+                                <div class="cat-title">\${cat.name}</div>
                             </div>
-                        `;
-                        reportGrid.innerHTML += `
-                            <div class="cat-card" style="--accent-gradient: ${cat.gradient};" data-cat-id="${cat.id}" data-cat-name="${cat.name.replace(/"/g, '&quot;')}" onclick="openCategoryFromCard(this, 'report')">
-                                <span class="cat-icon">${cat.icon}</span>
-                                <div class="cat-title">${cat.name}</div>
+                        \`;
+                        reportGrid.innerHTML += \`
+                            <div class="cat-card" style="--accent-gradient: \${cat.gradient};" onclick="openCategory('\${cat.id}', '\${safeName}', 'report')">
+                                <span class="cat-icon">\${cat.icon}</span>
+                                <div class="cat-title">\${cat.name}</div>
                             </div>
-                        `;
+                        \`;
                     });
-                }
-
-                function openCategoryFromCard(element, mode) {
-                    const catId = element.getAttribute('data-cat-id');
-                    const catName = element.getAttribute('data-cat-name');
-                    openCategory(catId, catName, mode);
                 }
 
                 function toggleSidebar() {
@@ -554,7 +551,7 @@ app.get('/', (req, res) => {
                     const text = document.getElementById('checker-input-uids').value.trim();
                     if(!text) return alert('Please enter UIDs to check!');
 
-                    const userUids = text.split('\n').map(u => u.trim()).filter(u => u.length > 0);
+                    const userUids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
 
                     fetch('/api/user/check-uids', {
                         method: 'POST',
@@ -571,7 +568,7 @@ app.get('/', (req, res) => {
                             const unclaimableLiveCount = results.filter(r => r.isLive && !r.isClaimed).length;
                             if(unclaimableLiveCount > 0) {
                                 const totalLivePrize = unclaimableLiveCount * (results[0].prize || 0);
-                                outputBox.innerHTML += `<button class="claim-all-btn" onclick="claimAllUids()">🔥 CLAIM ALL LIVE UIDs (${unclaimableLiveCount} IDs - ৳${totalLivePrize})</button>`;
+                                outputBox.innerHTML += \`<button class="claim-all-btn" onclick="claimAllUids()">🔥 CLAIM ALL LIVE UIDs (\${unclaimableLiveCount} IDs - ৳\${totalLivePrize})</button>\`;
                             }
 
                             results.forEach(r => {
@@ -579,17 +576,17 @@ app.get('/', (req, res) => {
                                 if(r.isClaimed) {
                                     badgeHtml = '<span class="badge-claimed">ALREADY CLAIMED</span>';
                                 } else if(r.isLive) {
-                                    badgeHtml = '<button class="claim-btn" onclick="claimUid(\'' + r.uid + '\')">CLAIM ৳' + r.prize + '</button>';
+                                    badgeHtml = '<button class="claim-btn" onclick="claimUid(\\'' + r.uid + '\\')">CLAIM ৳' + r.prize + '</button>';
                                 } else {
                                     badgeHtml = '<span class="badge-die">DIE</span>';
                                 }
 
-                                outputBox.innerHTML += `
+                                outputBox.innerHTML += \`
                                     <div class="uid-result-row">
-                                        <span class="uid-text">${r.uid}</span>
-                                        ${badgeHtml}
+                                        <span class="uid-text">\${r.uid}</span>
+                                        \${badgeHtml}
                                     </div>
-                                `;
+                                \`;
                             });
                         } else {
                             alert(data.message);
@@ -666,7 +663,7 @@ app.get('/', (req, res) => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
                             let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\'' + s.id + '\')">Delete</button></td></tr>';
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\\'' + s.id + '\\')">Delete</button></td></tr>';
                         });
                     });
                 }
@@ -965,22 +962,22 @@ app.get('/admin', (req, res) => {
 
                     dynamicCategories.forEach(cat => {
                         let isActive = (activeAdminCategory === cat.id) ? 'active' : '';
-                        container.innerHTML += `
-                            <button class="tab-btn ${isActive}" onclick="switchAdminTab('${cat.id}', this)">
-                                ${cat.name}
-                                <span onclick="event.stopPropagation(); deleteCategory('${cat.id}')" class="delete-cat-btn" title="Delete Category">❌</span>
+                        container.innerHTML += \`
+                            <button class="tab-btn \${isActive}" onclick="switchAdminTab('\${cat.id}', this)">
+                                \${cat.name}
+                                <span onclick="event.stopPropagation(); deleteCategory('\${cat.id}')" class="delete-cat-btn" title="Delete Category">❌</span>
                             </button>
-                        `;
+                        \`;
                     });
 
                     let isWithActive = (activeAdminCategory === 'withdrawals') ? 'active' : '';
                     let isArcActive = (activeAdminCategory === 'archives') ? 'active' : '';
 
-                    container.innerHTML += `
-                        <button class="tab-btn ${isWithActive}" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
-                        <button class="tab-btn ${isArcActive}" onclick="switchAdminTab('archives', this)" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📦 Archived UIDs / IDs</button>
+                    container.innerHTML += \`
+                        <button class="tab-btn \${isWithActive}" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
+                        <button class="tab-btn \${isArcActive}" onclick="switchAdminTab('archives', this)" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📦 Archived UIDs / IDs</button>
                         <button class="add-cat-tab-btn" onclick="addNewCategoryPrompt()">➕ Add Category</button>
-                    `;
+                    \`;
                 }
 
                 function addNewCategoryPrompt() {
@@ -1088,7 +1085,7 @@ app.get('/admin', (req, res) => {
                         allWithdrawals.forEach((w, index) => {
                             let actionCol = w.status === 'success' 
                                 ? '<span class="received-text">SUCCESS</span>' 
-                                : '<button class="received-btn" onclick="approveWithdraw(\'' + w.id + '\')">Approve / Pay</button>';
+                                : '<button class="received-btn" onclick="approveWithdraw(\\'' + w.id + '\\')">Approve / Pay</button>';
                             
                             let dateStr = new Date(w.date).toLocaleString();
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + w.username + '</strong></td><td>' + w.method + ' - <strong>' + w.phone + '</strong></td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;">' + actionCol + '</td></tr>';
@@ -1111,10 +1108,10 @@ app.get('/admin', (req, res) => {
                             if(s.status === 'success') {
                                 actionColumn = '<span class="received-text">RECEIVED</span>';
                             } else {
-                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\'' + s.id + '\', \'' + s.username + '\')">Received & Pay</button></div>';
+                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\\'' + s.id + '\\', \\'' + s.username + '\\')">Received & Pay</button></div>';
                             }
                             
-                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\'' + s.username + '\', \'' + s.id + '\')">📥</button>';
+                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥</button>';
                             let dateStr = new Date(s.date).toLocaleString();
                             
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
@@ -1147,20 +1144,20 @@ app.get('/admin', (req, res) => {
                     }
 
                     uidsList.forEach((uid, index) => {
-                        tbody.innerHTML += `
+                        tbody.innerHTML += \`
                             <tr>
-                                <td style="text-align: center; font-weight: 600;">${index + 1}</td>
-                                <td style="font-family: monospace; color: #38bdf8;">${uid}</td>
-                                <td style="text-align: center;"><button class="delete-btn" onclick="deleteSavedUid('${uid}')">Delete</button></td>
+                                <td style="text-align: center; font-weight: 600;">\${index + 1}</td>
+                                <td style="font-family: monospace; color: #38bdf8;">\${uid}</td>
+                                <td style="text-align: center;"><button class="delete-btn" onclick="deleteSavedUid('\${uid}')">Delete</button></td>
                             </tr>
-                        `;
+                        \`;
                     });
                 }
 
                 function saveAdminReportAndPrize() {
                     const text = document.getElementById('admin-report-textarea').value.trim();
                     const prize = parseFloat(document.getElementById('admin-category-prize').value) || 0;
-                    const newUids = text ? text.split('\n').map(u => u.trim()).filter(u => u.length > 0) : [];
+                    const newUids = text ? text.split('\\n').map(u => u.trim()).filter(u => u.length > 0) : [];
 
                     fetch('/api/admin/save-report', {
                         method: 'POST',
@@ -1232,7 +1229,7 @@ app.get('/admin', (req, res) => {
                     let sub = allSubmissions.find(s => s.id === id);
                     if(!sub) return alert('Data not found!');
 
-                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\r\n";
+                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\\r\\n";
                     let row = [
                         '"' + new Date(sub.date).toLocaleString() + '"',
                         '"@' + sub.username + '"',
@@ -1240,7 +1237,7 @@ app.get('/admin', (req, res) => {
                         '"' + sub.details.replace(/"/g, '""') + '"',
                         '"' + sub.status.toUpperCase() + '"'
                     ];
-                    csvContent += row.join(",") + "\r\n";
+                    csvContent += row.join(",") + "\\r\\n";
 
                     let encodedUri = encodeURI(csvContent);
                     let link = document.createElement("a");
@@ -1256,7 +1253,7 @@ app.get('/admin', (req, res) => {
                     let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
                     if(filtered.length === 0) return alert('No data available to download in this category!');
                     
-                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\r\n";
+                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\\r\\n";
                     filtered.forEach((s, index) => {
                         let row = [
                             index + 1,
@@ -1265,7 +1262,7 @@ app.get('/admin', (req, res) => {
                             '"' + s.details.replace(/"/g, '""') + '"',
                             '"' + s.status.toUpperCase() + '"'
                         ];
-                        csvContent += row.join(",") + "\r\n";
+                        csvContent += row.join(",") + "\\r\\n";
                     });
 
                     let encodedUri = encodeURI(csvContent);
@@ -1337,14 +1334,9 @@ app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
     
-    let existingUser = data.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    let existingUser = data.users.find(u => u.email === email || u.username === username);
     if(existingUser) {
-        return res.json({ success: false, message: 'This email is already registered! Please use another email.' });
-    }
-
-    let existingUsername = data.users.find(u => u.username.toLowerCase() === username.toLowerCase().replace(/^@/, ''));
-    if(existingUsername) {
-        return res.json({ success: false, message: 'Username already exists!' });
+        return res.json({ success: false, message: 'Email or Username already exists!' });
     }
 
     data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password, balance: 0 });
@@ -1356,7 +1348,7 @@ app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const data = loadData();
     
-    let user = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    let user = data.users.find(u => u.email === email && u.password === password);
     if(!user) {
         return res.json({ success: false, message: 'Invalid email or password!' });
     }
@@ -1510,12 +1502,11 @@ app.post('/api/withdraw', (req, res) => {
         username,
         method,
         phone,
-        amount: parseFloat(amount),
+        amount,
         status: 'pending',
         date: new Date().toISOString()
     };
 
-    if(!data.withdrawals) data.withdrawals = [];
     data.withdrawals.push(withdrawal);
     saveData(data);
     res.json({ success: true });
