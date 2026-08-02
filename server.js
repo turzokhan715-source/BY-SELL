@@ -51,7 +51,6 @@ app.get('/', (req, res) => {
                 .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
-                /* Responsive Auto-Fitting Premium Dashboard Container */
                 .dashboard-container { max-width: 1100px !important; width: 95% !important; padding: 35px !important; }
                 .sheet-scroll-box { max-height: 450px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 10px; margin-top: 15px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
                 
@@ -61,7 +60,6 @@ app.get('/', (req, res) => {
                 td { color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
                 
-                /* Google Sheet Style One-line Text Box with Horizontal Scroll */
                 .sheet-details { max-width: 550px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 8px; border-radius: 6px; border: 1px solid #eee; }
                 .sheet-details::-webkit-scrollbar { height: 6px; }
                 .sheet-details::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -253,7 +251,7 @@ app.get('/', (req, res) => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
                             let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\\\'' + s.id + '\\\')">Delete</button></td></tr>';
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\\'' + s.id + '\\')">Delete</button></td></tr>';
                         });
                     });
                 }
@@ -300,8 +298,11 @@ app.get('/admin', (req, res) => {
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16, 124, 65, 0.4); }
                 .hidden { display: none !important; }
 
-                /* Google Sheet Style Admin Container */
                 .admin-container { max-width: 1300px !important; width: 95% !important; padding: 30px !important; }
+                .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+                .download-btn { background: #2563eb; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; transition: 0.2s; box-shadow: 0 2px 6px rgba(37,99,235,0.3); }
+                .download-btn:hover { background: #1d4ed8; transform: scale(1.02); }
+
                 .sheet-scroll-box { max-height: 600px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: white; }
                 table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 950px; background: white; }
                 th, td { border: 1px solid #d1d5db; padding: 12px 16px; text-align: left; white-space: nowrap; }
@@ -334,7 +335,10 @@ app.get('/admin', (req, res) => {
 
             <!-- Admin Sheet View -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
-                <h2 style="text-align: left; margin-bottom: 15px; color: #107c41;">Google Sheet Format - Submissions</h2>
+                <div class="header-flex">
+                    <h2 style="margin: 0; color: #107c41;">Google Sheet Format - Submissions</h2>
+                    <button class="download-btn" onclick="downloadCSV()">📥 Download as Excel / CSV</button>
+                </div>
                 <div class="sheet-scroll-box">
                     <table>
                         <thead>
@@ -352,6 +356,8 @@ app.get('/admin', (req, res) => {
             </div>
 
             <script>
+                let allSubmissions = [];
+
                 function adminLogin() {
                     const pass = document.getElementById('admin-pass').value;
                     if(pass === '@MYPANEL') {
@@ -367,9 +373,10 @@ app.get('/admin', (req, res) => {
                     fetch('/api/admin/submissions')
                     .then(res => res.json())
                     .then(data => {
+                        allSubmissions = data.submissions;
                         let tbody = document.getElementById('admin-subs-table');
                         tbody.innerHTML = '';
-                        data.submissions.forEach((s, index) => {
+                        allSubmissions.forEach((s, index) => {
                             let actionColumn = s.status === 'success' 
                                 ? '<span class="received-text">RECEIVED</span>' 
                                 : '<button class="received-btn" onclick="markReceived(\\'' + s.id + '\\')">Received</button>';
@@ -388,6 +395,30 @@ app.get('/admin', (req, res) => {
                             loadAdminSubs();
                         }
                     });
+                }
+
+                function downloadCSV() {
+                    if(allSubmissions.length === 0) return alert('No data available to download!');
+                    
+                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,ID Details,Status\\r\\n";
+                    allSubmissions.forEach((s, index) => {
+                        let row = [
+                            index + 1,
+                            '"' + new Date(s.date).toLocaleString() + '"',
+                            '"@' + s.username + '"',
+                            '"' + s.details.replace(/"/g, '""') + '"',
+                            '"' + s.status.toUpperCase() + '"'
+                        ];
+                        csvContent += row.join(",") + "\\r\\n";
+                    });
+
+                    let encodedUri = encodeURI(csvContent);
+                    let link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "id_submissions.csv");
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
                 }
             </script>
         </body>
