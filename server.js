@@ -65,17 +65,14 @@ app.get('/', (req, res) => {
                 
                 .dashboard-container { max-width: 950px !important; padding: 35px !important; }
                 
-                /* Top Header Balance Bar */
                 .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
                 .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
                 .balance-amount { font-size: 20px; font-weight: 800; color: #4ade80; }
 
-                /* Nav Tabs inside Dashboard */
                 .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; }
                 .nav-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
                 .nav-tab-btn.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
 
-                /* Category Cards */
                 .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-top: 25px; }
                 .cat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
                 .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
@@ -173,13 +170,11 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
-                <!-- Navigation Tabs inside Dashboard -->
                 <div class="user-nav-tabs">
                     <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
                     <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
                 </div>
 
-                <!-- Submit ID Section -->
                 <div id="user-section-submit">
                     <div id="category-selection-view">
                         <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
@@ -195,7 +190,6 @@ app.get('/', (req, res) => {
                         </div>
                     </div>
 
-                    <!-- Specific Category Form & History -->
                     <div id="category-form-view" class="hidden">
                         <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
                         <h3 id="active-category-title" style="color: #818cf8; margin-bottom: 15px; font-size: 20px;"></h3>
@@ -223,7 +217,6 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
-                <!-- Withdraw / Payment Section -->
                 <div id="user-section-withdraw" class="hidden">
                     <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Withdraw Request / Payment</h3>
                     <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
@@ -562,7 +555,6 @@ app.get('/admin', (req, res) => {
                     </div>
                 </div>
 
-                <!-- Category Tabs + Payout Tab -->
                 <div class="category-tabs" id="admin-tabs-container">
                     ${CATEGORIES.map((cat, index) => `
                         <button class="tab-btn ${index === 0 ? 'active' : ''}" onclick="switchAdminTab('${cat.id}', this)">${cat.name}</button>
@@ -593,13 +585,23 @@ app.get('/admin', (req, res) => {
 
                 function adminLogin() {
                     const pass = document.getElementById('admin-pass').value;
-                    if(pass === '@MYPANEL') {
-                        document.getElementById('admin-login-card').classList.add('hidden');
-                        document.getElementById('admin-dashboard-card').classList.remove('hidden');
-                        loadAdminData();
-                    } else {
-                        alert('Wrong Password! Use @MYPANEL');
-                    }
+                    
+                    // সার্ভারে পাসওয়ার্ড ভ্যালিডেশনের জন্য ব্যাকএেন্ড এপিআই কল যুক্ত করা হয়েছে
+                    fetch('/api/admin/login', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ password: pass })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            document.getElementById('admin-login-card').classList.add('hidden');
+                            document.getElementById('admin-dashboard-card').classList.remove('hidden');
+                            loadAdminData();
+                        } else {
+                            alert('Wrong Password! Use @MYPANEL');
+                        }
+                    });
                 }
 
                 function switchAdminTab(catId, btnElement) {
@@ -656,10 +658,10 @@ app.get('/admin', (req, res) => {
                             if(s.status === 'success') {
                                 actionColumn = '<span class="received-text">RECEIVED</span>';
                             } else {
-                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\'' + s.id + '\', \'' + s.username + '\')">Received & Pay</button></div>';
+                                actionColumn = '<div class="action-cell-flex"><input type="number" id="bal-' + s.id + '" class="balance-input" placeholder="Amount"><button class="received-btn" onclick="markReceivedAndAddBal(\\'' + s.id + '\\', \\'' + s.username + '\\')">Received & Pay</button></div>';
                             }
                             
-                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\'' + s.username + '\', \'' + s.id + '\')">📥</button>';
+                            let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥</button>';
                             let dateStr = new Date(s.date).toLocaleString();
                             
                             tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
@@ -789,6 +791,16 @@ app.post('/api/login', (req, res) => {
     }
 
     res.json({ success: true, user });
+});
+
+// নতুন অ্যাডমিন লগইন রাউট যুক্ত করা হয়েছে
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+    if(password === '@MYPANEL') {
+        res.json({ success: true });
+    } else {
+        res.json({ success: false });
+    }
 });
 
 app.get('/api/user/refresh/:username', (req, res) => {
