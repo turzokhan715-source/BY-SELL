@@ -32,40 +32,52 @@ app.get('/', (req, res) => {
             <title>User Panel - ID Submission</title>
             <style>
                 * { box-sizing: border-box; }
-                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                .card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); width: 100%; max-width: 450px; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+                body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                
+                .card { background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(12px); width: 100%; max-width: 450px; padding: 35px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
                 .icon-box { width: 60px; height: 60px; background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius: 16px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3); }
+                
                 h2 { text-align: center; color: #111827; margin-bottom: 5px; font-weight: 700; }
-                p.subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 30px; }
+                p.subtitle { text-align: center; color: #6b7280; font-size: 14px; margin-bottom: 25px; }
                 label { display: block; font-size: 12px; font-weight: 700; color: #4b5563; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+                
                 input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 18px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 14px; background: #f9fafb; outline: none; transition: all 0.3s ease; }
                 input:focus, textarea:focus { border-color: #4f46e5; background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
+                
                 .btn { background: linear-gradient(135deg, #4f46e5, #6d28d9); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
                 .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4); }
+                
                 .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #4f46e5; font-weight: 600; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
                 .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
-                /* Google Sheet Style Responsive Dashboard Container */
-                .dashboard-container { max-width: 1000px !important; width: 100% !important; padding: 30px; }
-                .sheet-scroll-box { max-height: 450px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; margin-top: 15px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-                table { width: 100%; border-collapse: collapse; min-width: 700px; background: white; font-size: 14px; }
-                th, td { border: 1px solid #d1d5db; padding: 12px 16px; text-align: left; }
+                /* Responsive Auto-Fitting Premium Dashboard Container */
+                .dashboard-container { max-width: 1100px !important; width: 95% !important; padding: 35px !important; }
+                .sheet-scroll-box { max-height: 450px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 10px; margin-top: 15px; background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+                
+                table { width: 100%; border-collapse: collapse; min-width: 850px; background: white; font-size: 14px; }
+                th, td { border: 1px solid #d1d5db; padding: 14px 16px; text-align: left; white-space: nowrap; }
                 th { background: #f8fafc; color: #374151; position: sticky; top: 0; z-index: 10; font-weight: 700; text-align: center; }
                 td { color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
                 
-                /* Sheet Style Details Cell with inner scroll for long cookies */
-                .sheet-details { max-width: 500px; max-height: 80px; overflow-y: auto; overflow-x: auto; word-break: break-all; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 4px; border: 1px solid #eee; }
+                /* Google Sheet Style One-line Text Box with Horizontal Scroll */
+                .sheet-details { max-width: 550px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 8px; border-radius: 6px; border: 1px solid #eee; }
+                .sheet-details::-webkit-scrollbar { height: 6px; }
+                .sheet-details::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
                 
                 .status-pending { color: #d97706; font-weight: 700; background: #fef3c7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; text-align: center; }
                 .status-success { color: #16a34a; font-weight: 700; background: #dcfce7; padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; text-align: center; }
-                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 25px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+                
+                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2); }
+                .delete-btn:hover { transform: scale(1.05); }
+
+                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 25px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); max-width: 200px; }
                 .logout-btn:hover { box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4); }
 
                 @media (max-width: 768px) {
                     body { padding: 10px; }
-                    .card, .dashboard-container { padding: 20px; }
+                    .card, .dashboard-container { padding: 20px !important; }
                 }
             </style>
         </head>
@@ -120,14 +132,14 @@ app.get('/', (req, res) => {
             <!-- User Dashboard -->
             <div class="card dashboard-container hidden" id="dashboard-card">
                 <div>
-                    <h2 style="text-align: left; margin: 0;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
+                    <h2 style="text-align: left; margin: 0; font-size: 24px;">Welcome, <span id="user-display-name" style="color: #4f46e5;"></span></h2>
                     <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #374151;"></span></p>
                 </div>
                 
                 <div style="margin-top: 25px;">
                     <label>Submit ID Details / Cookies</label>
-                    <textarea id="id-details" rows="3" placeholder="Paste your ID details here..."></textarea>
-                    <button class="btn" onclick="submitId()" style="width: 200px;">Submit Now</button>
+                    <textarea id="id-details" rows="4" placeholder="Paste your ID details or cookies here..."></textarea>
+                    <button class="btn" onclick="submitId()" style="width: 220px;">Submit Now</button>
                 </div>
 
                 <h3 style="margin-top: 35px; color: #111827; font-size: 18px;">Google Sheet Format - History</h3>
@@ -138,12 +150,13 @@ app.get('/', (req, res) => {
                                 <th>Date & Time</th>
                                 <th>ID Details</th>
                                 <th>Status</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="user-subs-table"></tbody>
                     </table>
                 </div>
-                <button class="btn logout-btn" onclick="logout()" style="max-width: 200px;">Logout</button>
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
             </div>
 
             <script>
@@ -240,8 +253,19 @@ app.get('/', (req, res) => {
                             let statusClass = s.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = s.status === 'success' ? 'SUCCESS' : 'PENDING';
                             let dateStr = new Date(s.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td><div class="sheet-details">' + s.details + '</div></td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td><td style="text-align: center;"><button class="delete-btn" onclick="deleteSub(\\\'' + s.id + '\\\')">Delete</button></td></tr>';
                         });
+                    });
+                }
+
+                function deleteSub(id) {
+                    if(!confirm('Are you sure you want to delete this ID?')) return;
+                    fetch('/api/delete/' + id, { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.success) {
+                            loadUserSubs();
+                        }
                     });
                 }
 
@@ -277,16 +301,17 @@ app.get('/admin', (req, res) => {
                 .hidden { display: none !important; }
 
                 /* Google Sheet Style Admin Container */
-                .admin-container { max-width: 1200px !important; width: 100% !important; padding: 25px; }
-                .sheet-scroll-box { max-height: 580px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: white; }
-                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 800px; background: white; }
-                th, td { border: 1px solid #d1d5db; padding: 12px 16px; text-align: left; }
+                .admin-container { max-width: 1300px !important; width: 95% !important; padding: 30px !important; }
+                .sheet-scroll-box { max-height: 600px; overflow-y: auto; overflow-x: auto; border: 1px solid #d1d5db; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); background: white; }
+                table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 950px; background: white; }
+                th, td { border: 1px solid #d1d5db; padding: 12px 16px; text-align: left; white-space: nowrap; }
                 th { background: #107c41; color: white; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
                 td { background: #ffffff; color: #1f2937; }
                 tr:nth-child(even) td { background: #f8fafc; }
                 
-                /* Sheet Style Details Box */
-                .sheet-details { max-width: 450px; max-height: 100px; overflow-y: auto; overflow-x: auto; word-break: break-all; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 4px; border: 1px solid #eee; }
+                .sheet-details { max-width: 500px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; font-family: monospace; background: #fdfdfd; padding: 6px; border-radius: 4px; border: 1px solid #eee; }
+                .sheet-details::-webkit-scrollbar { height: 6px; }
+                .sheet-details::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
                 
                 .received-btn { background: #107c41; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s; box-shadow: 0 2px 6px rgba(16,124,65,0.2); }
                 .received-btn:hover { background: #0b5c31; transform: scale(1.05); }
@@ -294,7 +319,7 @@ app.get('/admin', (req, res) => {
 
                 @media (max-width: 768px) {
                     body { padding: 10px; }
-                    .card, .admin-container { padding: 15px; }
+                    .card, .admin-container { padding: 15px !important; }
                 }
             </style>
         </head>
@@ -421,6 +446,14 @@ app.get('/api/user/:username', (req, res) => {
     res.json({ success: true, submissions: userSubs });
 });
 
+app.post('/api/delete/:id', (req, res) => {
+    const { id } = req.params;
+    const data = loadData();
+    data.submissions = data.submissions.filter(s => s.id !== id);
+    saveData(data);
+    res.json({ success: true });
+});
+
 app.get('/api/admin/submissions', (req, res) => {
     const data = loadData();
     res.json({ success: true, submissions: data.submissions });
@@ -428,11 +461,12 @@ app.get('/api/admin/submissions', (req, res) => {
 
 app.post('/api/admin/update/:id', (req, res) => {
     const { id } = req.params;
-    const data = loadData();
-    const sub = data.submissions.find(s => s.id === id);
+    const data.submissions = data.submissions || [];
+    const dataObj = loadData();
+    const sub = dataObj.submissions.find(s => s.id === id);
     if(sub) {
         sub.status = 'success';
-        saveData(data);
+        saveData(dataObj);
     }
     res.json({ success: true });
 });
