@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User & Admin Panel</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .hidden { display: none !important; }
+        input, textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        button { background: #5c6bc0; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; }
+        button:hover { background: #3f51b5; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #f4f4f4; }
+        .status-pending { color: orange; font-weight: bold; }
+        .status-success { color: green; font-weight: bold; }
+        .nav-link { text-align: center; margin-top: 15px; color: #5c6bc0; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- LOGIN PAGE -->
+    <div id="loginPage">
+        <h2>লগইন করুন</h2>
+        <input type="email" id="loginEmail" placeholder="ኢমেইল / Email">
+        <input type="password" id="loginPassword" placeholder="পাসওয়ার্ড / Password">
+        <button onclick="login()">লগইন করুন</button>
+        <div class="nav-link" onclick="showRegister()">অ্যাকাউন্ট নেই? রেজিস্টার করুন</div>
+        <div class="nav-link" style="color: #d32f2f;" onclick="showAdminLogin()">অ্যাডমিন প্যানেল</div>
+    </div>
+
+    <!-- REGISTER PAGE -->
+    <div id="registerPage" class="hidden">
+        <h2>নতুন অ্যাকাউন্ট তৈরি করুন</h2>
+        <input type="text" id="regFirstName" placeholder="প্রথম নাম (First Name)">
+        <input type="text" id="regLastName" placeholder="শেষ নাম (Last Name)">
+        <input type="text" id="regTelegram" placeholder="টেলিগ্রাম ইউজারনেম (যেমন: @username)">
+        <input type="email" id="regEmail" placeholder="ইমেইল (Email Address)">
+        <input type="password" id="regPassword" placeholder="পাসওয়ার্ড (Password)">
+        <button onclick="register()">রেজিস্টার সম্পন্ন করুন</button>
+        <div class="nav-link" onclick="showLogin()">ইতিমধ্যে অ্যাকাউন্ট আছে? লগইন করুন</div>
+    </div>
+
+    <!-- USER DASHBOARD -->
+    <div id="userDashboard" class="hidden">
+        <h2>ইউজার প্যানেল (স্বাগতম, <span id="userNameDisplay"></span>)</h2>
+        <button style="background: #e53935; width: auto; padding: 5px 15px; float: right;" onclick="logout()">লগআউট</button>
+        <div style="clear: both;"></div>
+        
+        <h3>আইডি জমা দেওয়ার বক্স</h3>
+        <textarea id="idInputContent" placeholder="আপনার আইডি বা তথ্য এখানে লিখুন..."></textarea>
+        <button onclick="submitId()">জমা দিন (Submit)</button>
+
+        <h3 style="margin-top: 30px;">আপনার জমার হিস্ট্রি</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>তারিখ ও সময়</th>
+                    <th>তথ্য</th>
+                    <th>স্ট্যাটাস</th>
+                </tr>
+            </thead>
+            <tbody id="userHistoryTable">
+                <!-- Data will load here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ADMIN LOGIN -->
+    <div id="adminLoginPage" class="hidden">
+        <h2>অ্যাডমিন লগইন</h2>
+        <p style="font-size: 14px; color: #666;">পাসওয়ার্ড দিন: @MYPANEL</p>
+        <input type="password" id="adminPassInput" placeholder="অ্যাডমিন পাসওয়ার্ড">
+        <button onclick="adminLogin()">প্রবেশ করুন</button>
+        <div class="nav-link" onclick="showLogin()">ইউজার প্যানেলে ফিরে যান</div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="adminPanel" class="hidden">
+        <h2>অ্যাডমিন প্যানেল (গুগল শিট ফরম্যাট)</h2>
+        <button style="background: #e53935; width: auto; padding: 5px 15px; float: right;" onclick="logout()">লগআউট</button>
+        <div style="clear: both;"></div>
+        
+        <table style="margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>তারিখ ও সময়</th>
+                    <th>টেলিগ্রাম ইউজার</th>
+                    <th>আইডি / তথ্য</th>
+                    <th>অ্যাকশন</th>
+                </tr>
+            </thead>
+            <tbody id="adminTableBody">
+                <!-- Google sheet style rows -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
+
+    function checkAuth() {
+        if (currentUser) {
+            if(currentUser.isAdmin) {
+                showElement('adminPanel');
+                loadAdminData();
+            } else {
+                showElement('userDashboard');
+                document.getElementById('userNameDisplay').innerText = currentUser.name;
+                loadUserHistory();
+            }
+        } else {
+            showElement('loginPage');
+        }
+    }
+
+    function showElement(id) {
+        ['loginPage', 'registerPage', 'userDashboard', 'adminLoginPage', 'adminPanel'].forEach(page => {
+            document.getElementById(page).classList.add('hidden');
+        });
+        document.getElementById(id).classList.remove('hidden');
+    }
+
+    function showRegister() { showElement('registerPage'); }
+    function showLogin() { showElement('loginPage'); }
+    function showAdminLogin() { showElement('adminLoginPage'); }
+
+    async function register() {
+        const firstName = document.getElementById('regFirstName').value;
+        const lastName = document.getElementById('regLastName').value;
+        const telegram = document.getElementById('regTelegram').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+
+        if(!firstName || !telegram || !email || !password) {
+            alert('সবগুলো ঘর পূরণ করুন!');
+            return;
+        }
+
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName, lastName, telegram, email, password })
+        });
+        const data = await res.json();
+        if(data.success) {
+            alert('রেজিস্ট্রেশন সফল হয়েছে! এবার লগইন করুন।');
+            showLogin();
+        } else {
+            alert(data.message);
+        }
+    }
+
+    async function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if(data.success) {
+            currentUser = data.user;
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            checkAuth();
+        } else {
+            alert(data.message);
+        }
+    }
+
+    function adminLogin() {
+        const pass = document.getElementById('adminPassInput').value;
+        if(pass === '@MYPANEL') {
+            currentUser = { isAdmin: true };
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            checkAuth();
+        } else {
+            alert('ভুল পাসওয়ার্ড!');
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('currentUser');
+        currentUser = null;
+        showLogin();
+    }
+
+    async function submitId() {
+        const content = document.getElementById('idInputContent').value;
+        if(!content) {
+            alert('আইডি বা তথ্য লিখুন!');
+            return;
+        }
+
+        const res = await fetch('/api/submit-id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: currentUser.email, telegram: currentUser.telegram, content })
+        });
+        const data = await res.json();
+        if(data.success) {
+            document.getElementById('idInputContent').value = '';
+            alert('সফলভাবে জমা দেওয়া হয়েছে!');
+            loadUserHistory();
+        }
+    }
+
+    async function loadUserHistory() {
+        const res = await fetch(`/api/history/${currentUser.email}`);
+        const subs = await res.json();
+        let html = '';
+        subs.forEach(sub => {
+            let statusClass = sub.status === 'Success' ? 'status-success' : 'status-pending';
+            html += `<tr>
+                <td>${sub.date}</td>
+                <td>${sub.content}</td>
+                <td class="${statusClass}">${sub.status}</td>
+            </tr>`;
+        });
+        document.getElementById('userHistoryTable').html = html || '<tr><td colspan="3">কোনো হিস্ট্রি নেই</td></tr>';
+        document.getElementById('userHistoryTable').innerHTML = html || '<tr><td colspan="3">কোনো হিস্ট্রি নেই</td></tr>';
+    }
+
+    async function loadAdminData() {
+        const res = await fetch('/api/admin/submissions');
+        const subs = await res.json();
+        let html = '';
+        subs.forEach(sub => {
+            html += `<tr>
+                <td>${sub.date}</td>
+                <td><b>${sub.telegram}</b></td>
+                <td>${sub.content}</td>
+                <td>
+                    ${sub.status === 'Success' ? '<span style="color:green; font-weight:bold;">Received (Done)</span>' : `<button style="background:green; padding:5px 10px; width:auto;" onclick="markReceived(${sub.id})">Received</button>`}
+                </td>
+            </tr>`;
+        });
+        document.getElementById('adminTableBody').innerHTML = html || '<tr><td colspan="4">কোনো ডাটা জমা হয়নি</td></tr>';
+    }
+
+    async function markReceived(id) {
+        const res = await fetch(`/api/admin/receive/${id}`, { method: 'POST' });
+        const data = await res.json();
+        if(data.success) {
+            loadAdminData();
+        }
+    }
+
+    // Initial check
+    checkAuth();
+</script>
+
+</body>
+</html>
