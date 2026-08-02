@@ -27,20 +27,20 @@ function saveData(data) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-// সাবমিট ক্যাটেগরি লিস্ট
+// সাবমিট ক্যাটেগরি লিস্ট (সঠিক আইকন ও গ্রেডিয়েন্টসহ)
 const CATEGORIES = [
-    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
-    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
-    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
-    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
+    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: 'fab fa-instagram', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
+    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: 'fab fa-facebook-f', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
+    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: 'fas fa-cookie-bite', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: 'fas fa-envelope', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
 ];
 
-// রিপোর্ট সেকশনের ক্যাটেগরি লিস্ট (নাম আপডেট করা হয়েছে)
+// রিপোর্ট সেকশনের ক্যাটেগরি লিস্ট
 const REPORT_CATEGORIES = [
-    { id: 'instagram_2fa', name: '2FA Report', icon: '🛡️', gradient: 'linear-gradient(135deg, #f09433 0%, #dc2743 100%)' },
-    { id: 'fb_page_cookies', name: 'Instagram Report', icon: '🌐', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
-    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🔑', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
-    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '💎', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
+    { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: 'fab fa-instagram', gradient: 'linear-gradient(135deg, #f09433 0%, #dc2743 100%)' },
+    { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: 'fab fa-facebook-f', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
+    { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: 'fas fa-cookie-bite', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+    { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: 'fas fa-envelope', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
 ];
 
 // ==================== ১. ইউজার প্যানেল ====================
@@ -51,93 +51,85 @@ app.get('/', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>VoltX SMS - Premium Portal</title>
+            <title>By Sell - Secure ID Submission & Report Portal</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                :root {
-                    --bg-dark: #121212;
-                    --sidebar-bg: #181818;
-                    --card-bg: #1e1e1e;
-                    --primary-neon: #00E676;
-                    --text-main: #ffffff;
-                    --text-muted: #a0a0a0;
-                    --border-color: #2a2a2a;
-                }
                 * { box-sizing: border-box; }
-                body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; background-image: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%), radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
                 
-                .card { background-color: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 540px; padding: 35px; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
-                .icon-box { width: 60px; height: 60px; background: rgba(0, 230, 118, 0.1); border-radius: 12px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: var(--primary-neon); font-size: 28px; border: 1px solid rgba(0, 230, 118, 0.3); }
+                .card { background: rgba(30, 41, 59, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); width: 100%; max-width: 540px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+                .icon-box { width: 60px; height: 60px; background: linear-gradient(135deg, #6366f1, #a855f7); border-radius: 16px; margin: 0 auto 20px; display: flex; justify-content: center; align-items: center; color: white; font-size: 28px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); }
                 
-                h2 { text-align: center; color: var(--text-main); margin-bottom: 8px; font-weight: 700; font-size: 24px; }
-                p.subtitle { text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
-                label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
+                h2 { text-align: center; color: #f8fafc; margin-bottom: 8px; font-weight: 700; font-size: 24px; }
+                p.subtitle { text-align: center; color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+                label { display: block; font-size: 12px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.8px; }
                 
-                input, textarea, select { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 15px; background: rgba(18, 18, 18, 0.8); color: #fff; outline: none; transition: all 0.3s ease; font-family: inherit; }
-                input:focus, textarea:focus, select:focus { border-color: var(--primary-neon); background: rgba(18, 18, 18, 1); box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.15); }
-                select option { background: #181818; color: #fff; }
+                input, textarea, select { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(15, 23, 42, 0.6); color: #fff; outline: none; transition: all 0.3s ease; font-family: inherit; }
+                input:focus, textarea:focus, select:focus { border-color: #6366f1; background: rgba(15, 23, 42, 0.9); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
+                select option { background: #0f172a; color: #fff; }
                 
-                .btn { background-color: var(--primary-neon); color: #000; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; font-family: inherit; }
-                .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+                .btn { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4); font-family: inherit; }
+                .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(99, 102, 241, 0.6); }
                 
-                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: var(--primary-neon); font-weight: 600; cursor: pointer; letter-spacing: 0.5px; }
+                .switch-text { text-align: center; margin-top: 20px; font-size: 13px; color: #818cf8; font-weight: 600; cursor: pointer; letter-spacing: 0.5px; }
                 .switch-text:hover { text-decoration: underline; }
                 .hidden { display: none !important; }
                 
                 .dashboard-container { max-width: 950px !important; padding: 35px !important; }
                 
-                .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border-color); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
-                .balance-badge { background: rgba(0, 230, 118, 0.1); border: 1px solid rgba(0, 230, 118, 0.3); padding: 10px 20px; border-radius: 10px; display: flex; align-items: center; gap: 10px; }
-                .balance-amount { font-size: 20px; font-weight: 800; color: var(--primary-neon); }
+                .top-bar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 20px; margin-bottom: 25px; gap: 15px; }
+                .balance-badge { background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2)); border: 1px solid rgba(16, 185, 129, 0.4); padding: 10px 20px; border-radius: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 20px rgba(16,185,129,0.15); }
+                .balance-amount { font-size: 20px; font-weight: 800; color: #4ade80; }
 
                 .user-nav-tabs { display: flex; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-                .nav-tab-btn { background: #181818; border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
-                .nav-tab-btn.active { background: rgba(0, 230, 118, 0.15); color: var(--primary-neon); border-color: var(--primary-neon); }
+                .nav-tab-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: inherit; }
+                .nav-tab-btn.active { background: #6366f1; color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
 
                 .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; margin-top: 25px; }
-                .cat-card { background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; }
+                .cat-card { background: rgba(30, 41, 59, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 18px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: relative; overflow: hidden; }
                 .cat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--accent-gradient); }
-                .cat-card:hover { transform: translateY(-4px); border-color: var(--primary-neon); }
-                .cat-icon { font-size: 40px; margin-bottom: 15px; display: block; }
-                .cat-title { font-weight: 700; color: var(--text-main); font-size: 15px; }
+                .cat-card:hover { transform: translateY(-6px); border-color: rgba(99, 102, 241, 0.5); background: rgba(30, 41, 59, 0.8); box-shadow: 0 20px 40px rgba(99,102,241,0.2); }
+                .cat-icon { font-size: 36px; margin-bottom: 15px; display: block; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); color: #fff; }
+                .cat-title { font-weight: 700; color: #f1f5f9; font-size: 15px; }
 
-                .back-btn { background: #2a2a2a; color: #fff; width: auto; padding: 10px 20px; margin-bottom: 20px; font-size: 13px; border: 1px solid var(--border-color); }
-                .back-btn:hover { background: #333; transform: none; }
+                .back-btn { background: rgba(255, 255, 255, 0.1); width: auto; padding: 10px 20px; margin-bottom: 20px; font-size: 13px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.1); }
+                .back-btn:hover { background: rgba(255, 255, 255, 0.2); transform: none; }
 
-                .sheet-scroll-box { max-height: 400px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px; margin-top: 20px; background: rgba(18, 18, 18, 0.5); }
+                .sheet-scroll-box { max-height: 400px; overflow-y: auto; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px; margin-top: 20px; background: rgba(15, 23, 42, 0.5); }
                 table { width: 100%; border-collapse: collapse; min-width: 700px; font-size: 14px; }
-                th, td { border-bottom: 1px solid var(--border-color); padding: 14px 18px; text-align: left; white-space: nowrap; }
-                th { background: #181818; color: var(--text-muted); position: sticky; top: 0; z-index: 10; font-weight: 700; }
-                td { color: var(--text-main); }
+                th, td { border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
+                th { background: rgba(15, 23, 42, 0.8); color: #cbd5e1; position: sticky; top: 0; z-index: 10; font-weight: 700; }
+                td { color: #e2e8f0; }
                 
-                .sheet-details { max-width: 320px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0, 0, 0, 0.3); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); color: var(--primary-neon); }
+                .sheet-details { max-width: 320px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0, 0, 0, 0.3); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); color: #38bdf8; }
                 
-                .status-pending { color: #ffb74d; font-weight: 700; background: rgba(255, 183, 77, 0.15); padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; border: 1px solid rgba(255, 183, 77, 0.3); }
-                .status-success { color: var(--primary-neon); font-weight: 700; background: rgba(0, 230, 118, 0.15); padding: 6px 12px; border-radius: 20px; display: inline-block; font-size: 12px; border: 1px solid rgba(0, 230, 118, 0.3); }
+                .status-pending { color: #fbbf24; font-weight: 700; background: rgba(251, 191, 36, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(251, 191, 36, 0.3); }
+                .status-success { color: #4ade80; font-weight: 700; background: rgba(74, 222, 128, 0.15); padding: 6px 12px; border-radius: 30px; display: inline-block; font-size: 12px; border: 1px solid rgba(74, 222, 128, 0.3); }
                 
-                .delete-btn { background: #ef4444; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; }
-                .delete-btn:hover { opacity: 0.9; }
+                .delete-btn { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 600; transition: 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+                .delete-btn:hover { transform: scale(1.05); }
 
-                .logout-btn { background: #ef4444; color: #fff; margin-top: 30px; max-width: 160px; }
+                .logout-btn { background: linear-gradient(135deg, #ef4444, #dc2626); margin-top: 30px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); max-width: 160px; }
 
-                .checker-box { background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; margin-top: 20px; }
-                .checker-title { text-align: center; font-size: 20px; font-weight: 800; color: var(--primary-neon); margin-bottom: 20px; }
+                .checker-box { background: #0b0f19; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 25px; margin-top: 20px; }
+                .checker-title { text-align: center; font-size: 22px; font-weight: 800; color: #38bdf8; margin-bottom: 20px; letter-spacing: 0.5px; }
                 
-                .uid-result-row { display: flex; justify-content: space-between; align-items: center; background: rgba(18, 18, 18, 0.6); padding: 10px 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color); }
+                .uid-result-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 10px 15px; border-radius: 10px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
                 .uid-text { font-family: monospace; font-weight: 600; font-size: 14px; }
-                .badge-live { color: var(--primary-neon); background: rgba(0,230,118,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+                .badge-live { color: #4ade80; background: rgba(74,222,128,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
                 .badge-die { color: #f87171; background: rgba(248,113,113,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
-                .badge-claimed { color: var(--text-muted); background: rgba(160,160,160,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+                .badge-claimed { color: #cbd5e1; background: rgba(148,163,184,0.15); padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
                 
-                .claim-btn { background-color: var(--primary-neon); color: #000; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.2s; }
-                .claim-btn:hover { opacity: 0.9; }
+                .claim-btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: 700; transition: 0.2s; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+                .claim-btn:hover { transform: scale(1.05); }
 
-                .claim-all-btn { background: linear-gradient(135deg, #00E676, #00b0ff); color: #000; border: none; padding: 12px; border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; margin-bottom: 15px; transition: 0.2s; }
-                .claim-all-btn:hover { opacity: 0.9; }
+                .claim-all-btn { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 14px; font-weight: 700; width: 100%; margin-bottom: 15px; box-shadow: 0 8px 20px rgba(245,158,11,0.3); transition: 0.2s; }
+                .claim-all-btn:hover { transform: translateY(-2px); }
 
                 @media (max-width: 600px) {
                     body { padding: 10px; }
-                    .card { padding: 20px; }
+                    .card { padding: 20px; border-radius: 20px; }
                     .dashboard-container { padding: 20px !important; }
                     .category-grid { grid-template-columns: 1fr; }
                 }
@@ -147,8 +139,8 @@ app.get('/', (req, res) => {
 
             <!-- Login View -->
             <div class="card" id="login-card">
-                <div class="icon-box">⚡</div>
-                <h2>VOLTX SMS.</h2>
+                <div class="icon-box"><i class="fas fa-lock"></i></div>
+                <h2>By Sell.</h2>
                 <p class="subtitle">Secure ID Submission & Report Portal</p>
                 
                 <label>Email Address</label>
@@ -163,9 +155,9 @@ app.get('/', (req, res) => {
 
             <!-- Register View -->
             <div class="card hidden" id="register-card">
-                <div class="icon-box">⚡</div>
+                <div class="icon-box"><i class="fas fa-bolt"></i></div>
                 <h2>Create Account</h2>
-                <p class="subtitle">Join VoltX SMS exclusive platform</p>
+                <p class="subtitle">Join our exclusive platform</p>
                 
                 <div style="display: flex; gap: 12px;">
                     <div>
@@ -195,31 +187,31 @@ app.get('/', (req, res) => {
             <div class="card dashboard-container hidden" id="dashboard-card">
                 <div class="top-bar">
                     <div>
-                        <h2 style="text-align: left; margin: 0; font-size: 22px;">Welcome, <span id="user-display-name" style="color: var(--primary-neon);"></span></h2>
-                        <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #fff;"></span></p>
+                        <h2 style="text-align: left; margin: 0; font-size: 22px;">Welcome, <span id="user-display-name" style="color: #818cf8;"></span></h2>
+                        <p class="subtitle" style="text-align: left; margin: 5px 0 0 0;">Telegram: <span id="user-display-tg" style="font-weight: 600; color: #38bdf8;"></span></p>
                     </div>
                     <div class="balance-badge">
-                        <span>💰 Balance:</span>
+                        <span><i class="fas fa-wallet"></i> Balance:</span>
                         <span class="balance-amount" id="user-balance-display">৳0.00</span>
                     </div>
                 </div>
 
                 <div class="user-nav-tabs">
-                    <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')">📥 Submit IDs</button>
-                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')">🔍 UID Checker & Claim</button>
-                    <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')">💸 Withdraw / Payment</button>
+                    <button class="nav-tab-btn active" id="tab-btn-submit" onclick="switchUserTab('submit')"><i class="fas fa-file-arrow-up"></i> Submit IDs</button>
+                    <button class="nav-tab-btn" id="tab-btn-report" onclick="switchUserTab('report')"><i class="fas fa-magnifying-glass"></i> UID Checker & Claim</button>
+                    <button class="nav-tab-btn" id="tab-btn-withdraw" onclick="switchUserTab('withdraw')"><i class="fas fa-money-bill-transfer"></i> Withdraw / Payment</button>
                 </div>
 
                 <!-- Submit IDs Section -->
                 <div id="user-section-submit">
                     <div id="category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #fff; font-size: 18px;">Select Category to Submit ID</h3>
-                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
+                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category to Submit ID</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Choose a category below to proceed with your submission.</p>
                         
                         <div class="category-grid">
                             ${CATEGORIES.map(cat => `
                                 <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'submit')">
-                                    <span class="cat-icon">${cat.icon}</span>
+                                    <i class="${cat.icon} cat-icon"></i>
                                     <div class="cat-title">${cat.name}</div>
                                 </div>
                             `).join('')}
@@ -227,16 +219,16 @@ app.get('/', (req, res) => {
                     </div>
 
                     <div id="category-form-view" class="hidden">
-                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
-                        <h3 id="active-category-title" style="color: var(--primary-neon); margin-bottom: 15px; font-size: 20px;"></h3>
+                        <button class="btn back-btn" onclick="backToCategories()"><i class="fas fa-arrow-left"></i> Back to Categories</button>
+                        <h3 id="active-category-title" style="color: #818cf8; margin-bottom: 15px; font-size: 20px;"></h3>
                         
-                        <div style="background: var(--sidebar-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06);">
                             <label>Submit Details / Cookies</label>
                             <textarea id="id-details" rows="3" placeholder="Paste details or cookies here..."></textarea>
                             <button class="btn" onclick="submitId()" style="width: 180px;">Submit Now</button>
                         </div>
 
-                        <h4 style="margin: 30px 0 15px 0; color: #fff; font-size: 16px;">Your Submissions History</h4>
+                        <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Submissions History</h4>
                         <div class="sheet-scroll-box">
                             <table>
                                 <thead>
@@ -256,13 +248,13 @@ app.get('/', (req, res) => {
                 <!-- Report & UID Checker Section -->
                 <div id="user-section-report" class="hidden">
                     <div id="report-category-selection-view">
-                        <h3 style="margin: 0 0 5px 0; color: #fff; font-size: 18px;">Select Report Category for UID Checker & Claim</h3>
-                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Check live UIDs and claim your rewards.</p>
+                        <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Select Category for UID Checker & Claim</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Check live UIDs and claim your rewards.</p>
                         
                         <div class="category-grid">
                             ${REPORT_CATEGORIES.map(cat => `
                                 <div class="cat-card" style="--accent-gradient: ${cat.gradient};" onclick="openCategory('${cat.id}', '${cat.name.replace(/'/g, "\\'")}', 'report')">
-                                    <span class="cat-icon">${cat.icon}</span>
+                                    <i class="${cat.icon} cat-icon"></i>
                                     <div class="cat-title">${cat.name}</div>
                                 </div>
                             `).join('')}
@@ -270,8 +262,8 @@ app.get('/', (req, res) => {
                     </div>
 
                     <div id="report-checker-view" class="hidden">
-                        <button class="btn back-btn" onclick="backToCategories()">⬅️ Back to Categories</button>
-                        <h3 id="active-report-category-title" style="color: var(--primary-neon); margin-bottom: 15px; font-size: 20px;"></h3>
+                        <button class="btn back-btn" onclick="backToCategories()"><i class="fas fa-arrow-left"></i> Back to Categories</button>
+                        <h3 id="active-report-category-title" style="color: #38bdf8; margin-bottom: 15px; font-size: 20px;"></h3>
 
                         <div class="checker-box">
                             <div class="checker-title">UID Scanner & Auto Claim Portal</div>
@@ -283,7 +275,7 @@ app.get('/', (req, res) => {
 
                             <div style="margin-top: 25px;">
                                 <div id="checker-output-box" style="min-height: 100px; max-height: 300px; overflow-y: auto;">
-                                    <div style="color: var(--text-muted); text-align: center; padding: 30px;">No UIDs scanned yet.</div>
+                                    <div style="color: #64748b; text-align: center; padding: 30px;">No UIDs scanned yet.</div>
                                 </div>
                             </div>
                         </div>
@@ -292,10 +284,10 @@ app.get('/', (req, res) => {
 
                 <!-- Withdraw Section -->
                 <div id="user-section-withdraw" class="hidden">
-                    <h3 style="margin: 0 0 5px 0; color: #fff; font-size: 18px;">Withdraw Request / Payment</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
+                    <h3 style="margin: 0 0 5px 0; color: #f8fafc; font-size: 18px;">Withdraw Request / Payment</h3>
+                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Request a payout to your mobile banking account.</p>
 
-                    <div style="background: var(--sidebar-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); max-width: 500px;">
+                    <div style="background: rgba(15, 23, 42, 0.4); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); max-width: 500px;">
                         <label>Select Payment Method</label>
                         <select id="withdraw-method">
                             <option value="Bkash">Bkash</option>
@@ -312,7 +304,7 @@ app.get('/', (req, res) => {
                         <button class="btn" onclick="sendWithdrawRequest()">Send Request</button>
                     </div>
 
-                    <h4 style="margin: 30px 0 15px 0; color: #fff; font-size: 16px;">Your Withdrawal History</h4>
+                    <h4 style="margin: 30px 0 15px 0; color: #f8fafc; font-size: 16px;">Your Withdrawal History</h4>
                     <div class="sheet-scroll-box">
                         <table>
                             <thead>
@@ -329,7 +321,7 @@ app.get('/', (req, res) => {
                     </div>
                 </div>
 
-                <button class="btn logout-btn" onclick="logout()">Logout</button>
+                <button class="btn logout-btn" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Logout</button>
             </div>
 
             <script>
@@ -465,7 +457,7 @@ app.get('/', (req, res) => {
                         document.getElementById('report-category-selection-view').classList.add('hidden');
                         document.getElementById('report-checker-view').classList.remove('hidden');
                         document.getElementById('checker-input-uids').value = '';
-                        document.getElementById('checker-output-box').innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 30px;">No UIDs scanned yet.</div>';
+                        document.getElementById('checker-output-box').innerHTML = '<div style="color: #64748b; text-align: center; padding: 30px;">No UIDs scanned yet.</div>';
                     }
                 }
 
@@ -499,7 +491,7 @@ app.get('/', (req, res) => {
                             const unclaimableLiveCount = results.filter(r => r.isLive && !r.isClaimed).length;
                             if(unclaimableLiveCount > 0) {
                                 const totalLivePrize = unclaimableLiveCount * (results[0].prize || 0);
-                                outputBox.innerHTML += \`<button class="claim-all-btn" onclick="claimAllUids()">🔥 ALL CLAIM LIVE UIDs (\${unclaimableLiveCount} IDs - ৳\${totalLivePrize})</button>\`;
+                                outputBox.innerHTML += \`<button class="claim-all-btn" onclick="claimAllUids()">🔥 CLAIM ALL LIVE UIDs (\${unclaimableLiveCount} IDs - ৳\${totalLivePrize})</button>\`;
                             }
 
                             results.forEach(r => {
@@ -587,7 +579,7 @@ app.get('/', (req, res) => {
                         let tbody = document.getElementById('user-subs-table');
                         tbody.innerHTML = '';
                         if(data.submissions.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 25px;">No submissions found in this category.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
                             return;
                         }
                         data.submissions.forEach(s => {
@@ -644,14 +636,14 @@ app.get('/', (req, res) => {
                         let tbody = document.getElementById('user-withdraw-table');
                         tbody.innerHTML = '';
                         if(data.withdrawals.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">No withdrawal requests found.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No withdrawal requests found.</td></tr>';
                             return;
                         }
                         data.withdrawals.forEach(w => {
                             let statusClass = w.status === 'success' ? 'status-success' : 'status-pending';
                             let statusText = w.status === 'success' ? 'SUCCESS' : 'PENDING';
                             let dateStr = new Date(w.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td>' + w.method + '</td><td>' + w.phone + '</td><td style="color: var(--primary-neon); font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
+                            tbody.innerHTML += '<tr><td>' + dateStr + '</td><td>' + w.method + '</td><td>' + w.phone + '</td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;"><span class="' + statusClass + '">' + statusText + '</span></td></tr>';
                         });
                     });
                 }
@@ -676,61 +668,53 @@ app.get('/admin', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>VoltX SMS - Admin Dashboard</title>
+            <title>Premium Admin Dashboard</title>
             <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
             <style>
-                :root {
-                    --bg-dark: #121212;
-                    --sidebar-bg: #181818;
-                    --card-bg: #1e1e1e;
-                    --primary-neon: #00E676;
-                    --text-main: #ffffff;
-                    --text-muted: #a0a0a0;
-                    --border-color: #2a2a2a;
-                }
                 * { box-sizing: border-box; }
-                body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-                .card { background-color: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 440px; padding: 35px; border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
-                h2 { text-align: center; color: var(--text-main); margin-bottom: 25px; font-weight: 700; font-size: 22px; }
-                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid var(--border-color); border-radius: 10px; font-size: 15px; background: rgba(18, 18, 18, 0.8); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
-                input:focus, textarea:focus { border-color: var(--primary-neon); background: rgba(18, 18, 18, 1); box-shadow: 0 0 0 4px rgba(0, 230, 118, 0.15); }
-                .btn { background-color: var(--primary-neon); color: #000; border: none; padding: 14px; border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; font-family: inherit; }
-                .btn:hover { opacity: 0.9; transform: translateY(-2px); }
+                body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0b0f19; margin: 0; padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; color: #f8fafc; }
+                .card { background: rgba(17, 24, 39, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); width: 100%; max-width: 440px; padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+                h2 { text-align: center; color: #f8fafc; margin-bottom: 25px; font-weight: 700; font-size: 22px; }
+                input, textarea { width: 100%; padding: 14px 18px; margin-bottom: 20px; border: 2px solid rgba(255, 255, 255, 0.08); border-radius: 12px; font-size: 15px; background: rgba(3, 7, 18, 0.6); color: #fff; outline: none; transition: 0.3s; font-family: inherit; }
+                input:focus, textarea:focus { border-color: #10b981; background: rgba(3, 7, 18, 0.9); box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2); }
+                .btn { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 14px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; width: 100%; transition: all 0.3s ease; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); font-family: inherit; }
+                .btn:hover { transform: translateY(-2px); box-shadow: 0 15px 30px rgba(16, 185, 129, 0.6); }
                 .hidden { display: none !important; }
 
-                .admin-container { max-width: 1350px !important; padding: 35px !important; border-radius: 16px; }
+                .admin-container { max-width: 1350px !important; padding: 35px !important; border-radius: 24px; }
                 .header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px; }
                 
-                .category-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; }
-                .tab-btn { background: #181818; color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
-                .tab-btn.active { background: rgba(0, 230, 118, 0.15); color: var(--primary-neon); border-color: var(--primary-neon); }
+                .category-tabs { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.08); padding-bottom: 12px; }
+                .tab-btn { background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.05); padding: 10px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; font-family: inherit; }
+                .tab-btn.active { background: linear-gradient(135deg, #10b981, #059669); color: white; border-color: transparent; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
 
                 .admin-sub-nav { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-                .sub-nav-btn { background: #181818; border: 1px solid var(--border-color); color: var(--text-muted); padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
-                .sub-nav-btn.active { background: rgba(0, 230, 118, 0.15); color: var(--primary-neon); border-color: var(--primary-neon); }
+                .sub-nav-btn { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #94a3b8; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
+                .sub-nav-btn.active { background: #3b82f6; color: white; border-color: transparent; }
 
                 .header-btns { display: flex; gap: 10px; flex-wrap: wrap; }
-                .action-global-btn { background: #2a2a2a; color: #fff; border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; display: flex; align-items: center; gap: 6px; font-family: inherit; }
-                .action-global-btn:hover { border-color: var(--primary-neon); color: var(--primary-neon); }
+                .action-global-btn { background: #3b82f6; color: white; border: none; padding: 10px 16px; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; box-shadow: 0 4px 15px rgba(59,130,246,0.3); display: flex; align-items: center; gap: 6px; font-family: inherit; }
+                .action-global-btn:hover { background: #2563eb; transform: translateY(-2px); }
                 
-                .clear-btn { background: #ef4444 !important; border-color: #ef4444 !important; color: #fff !important; }
-                .clear-btn:hover { opacity: 0.9 !important; color: #fff !important; }
+                .clear-btn { background: #ef4444 !important; box-shadow: 0 4px 15px rgba(239,68,68,0.3) !important; }
+                .clear-btn:hover { background: #dc2626 !important; }
 
-                .sheet-scroll-box { max-height: 520px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px; background: rgba(18, 18, 18, 0.4); }
+                .sheet-scroll-box { max-height: 520px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; background: rgba(3, 7, 18, 0.4); }
                 table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 950px; background: transparent; }
-                th, td { border-bottom: 1px solid var(--border-color); padding: 14px 18px; text-align: left; white-space: nowrap; }
-                th { background: #181818; color: var(--text-muted); font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
-                td { background: transparent; color: var(--text-main); }
+                th, td { border-bottom: 1px solid rgba(255,255,255,0.06); padding: 14px 18px; text-align: left; white-space: nowrap; }
+                th { background: rgba(3, 7, 18, 0.8); color: #cbd5e1; font-weight: 600; text-align: center; position: sticky; top: 0; z-index: 10; }
+                td { background: transparent; color: #cbd5e1; }
                 
-                .sheet-details { max-width: 300px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); color: var(--primary-neon); }
+                .sheet-details { max-width: 300px; overflow-x: auto; white-space: nowrap; font-family: monospace; background: rgba(0,0,0,0.4); padding: 6px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); color: #38bdf8; }
                 
                 .action-cell-flex { display: flex; align-items: center; gap: 8px; justify-content: center; }
                 .balance-input { width: 85px !important; padding: 6px 8px !important; margin-bottom: 0 !important; font-size: 13px !important; text-align: center; }
-                .received-btn { background-color: var(--primary-neon); color: #000; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; }
-                .received-btn:hover { opacity: 0.9; }
-                .received-text { color: var(--primary-neon); font-weight: bold; text-align: center; display: inline-block; background: rgba(0,230,118,0.15); padding: 6px 10px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(0,230,118,0.3); }
+                .received-btn { background: #10b981; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; box-shadow: 0 4px 10px rgba(16,185,129,0.3); }
+                .received-btn:hover { background: #059669; }
+                .received-text { color: #4ade80; font-weight: bold; text-align: center; display: inline-block; background: rgba(74,222,128,0.15); padding: 6px 10px; border-radius: 6px; font-size: 12px; border: 1px solid rgba(74,222,128,0.3); }
 
-                .row-download-btn { background: #2a2a2a; color: #fff; border: 1px solid var(--border-color); padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 6px; }
+                .row-download-btn { background: #6366f1; color: white; border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; margin-left: 6px; }
 
                 @media (max-width: 600px) {
                     body { padding: 10px; }
@@ -751,10 +735,10 @@ app.get('/admin', (req, res) => {
             <!-- Admin Dashboard -->
             <div class="card admin-container hidden" id="admin-dashboard-card">
                 <div class="header-flex">
-                    <h2 style="margin: 0; color: #fff; font-size: 20px;">📊 VoltX Admin Panel - Control Center</h2>
+                    <h2 style="margin: 0; color: #f8fafc; font-size: 20px;"><i class="fas fa-chart-bar"></i> Admin Panel - Category & Report Control</h2>
                     <div class="header-btns" id="admin-top-btns">
-                        <button class="action-global-btn" onclick="downloadCategoryCSV()">📥 Download Tab (CSV)</button>
-                        <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()">🗑️ Clear Tab & Archive</button>
+                        <button class="action-global-btn" onclick="downloadCategoryCSV()"><i class="fas fa-download"></i> Download Tab (CSV)</button>
+                        <button class="action-global-btn clear-btn" onclick="clearCategorySubmissions()"><i class="fas fa-trash"></i> Clear Tab & Archive</button>
                     </div>
                 </div>
 
@@ -763,13 +747,13 @@ app.get('/admin', (req, res) => {
                         <button class="tab-btn ${index === 0 ? 'active' : ''}" onclick="switchAdminTab('${cat.id}', this)">${cat.name}</button>
                     `).join('')}
                     <button class="tab-btn" onclick="switchAdminTab('withdrawals', this)">💸 Payment Requests</button>
-                    <button class="tab-btn" onclick="switchAdminTab('archives', this)" style="background: rgba(139, 92, 246, 0.15); color: #a78bfa; border-color: rgba(139, 92, 246, 0.3);">📦 Archived UIDs / IDs</button>
+                    <button class="tab-btn" onclick="switchAdminTab('archives', this)" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">📦 Archived UIDs / IDs</button>
                 </div>
 
                 <!-- Admin Sub View Toggle -->
                 <div class="admin-sub-nav" id="admin-sub-nav-container">
-                    <button class="sub-nav-btn active" id="sub-view-subs" onclick="switchAdminSubView('submissions')">📥 User Submissions</button>
-                    <button class="sub-nav-btn" id="sub-view-report" onclick="switchAdminSubView('report')">⚙️ Manage Report UIDs & Prize</button>
+                    <button class="sub-nav-btn active" id="sub-view-subs" onclick="switchAdminSubView('submissions')"><i class="fas fa-inbox"></i> User Submissions</button>
+                    <button class="sub-nav-btn" id="sub-view-report" onclick="switchAdminSubView('report')"><i class="fas fa-gears"></i> Manage Report UIDs & Prize</button>
                 </div>
 
                 <!-- Submissions View Box -->
@@ -792,9 +776,9 @@ app.get('/admin', (req, res) => {
 
                 <!-- Report UIDs & Prize Management Box -->
                 <div id="admin-report-view" class="hidden">
-                    <div style="background: var(--sidebar-bg); padding: 25px; border-radius: 12px; border: 1px solid var(--border-color);">
-                        <h3 style="margin-top: 0; color: var(--primary-neon); font-size: 18px;" id="admin-report-title">Manage Report Box UIDs & Auto Prize</h3>
-                        <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Set the prize amount and add/append new live UIDs. Saved UIDs will stay in history below.</p>
+                    <div style="background: rgba(3, 7, 18, 0.5); padding: 25px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.08);">
+                        <h3 style="margin-top: 0; color: #38bdf8; font-size: 18px;" id="admin-report-title">Manage Report Box UIDs & Auto Prize</h3>
+                        <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Set the prize amount and add/append new live UIDs. Saved UIDs will stay in history below.</p>
                         
                         <label>Category Prize Amount (BDT)</label>
                         <input type="number" id="admin-category-prize" placeholder="e.g. 50">
@@ -804,7 +788,7 @@ app.get('/admin', (req, res) => {
                         
                         <button class="btn" onclick="saveAdminReportAndPrize()" style="max-width: 220px; margin-bottom: 25px;">Save & Append UIDs</button>
 
-                        <h4 style="color: #fff; margin-bottom: 10px;">Saved UID History (<span id="saved-uids-count">0</span>)</h4>
+                        <h4 style="color: #f8fafc; margin-bottom: 10px;">Saved UID History (<span id="saved-uids-count">0</span>)</h4>
                         <div class="sheet-scroll-box" style="max-height: 250px;">
                             <table>
                                 <thead>
@@ -823,7 +807,7 @@ app.get('/admin', (req, res) => {
                 <!-- Archive Box View -->
                 <div id="admin-archive-view" class="hidden">
                     <h3 style="color: #a78bfa; margin-bottom: 15px;">Archived / Cleared ID History Box</h3>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Cleared or archived entries from previous dates are safely stored here in file format.</p>
+                    <p style="color: #94a3b8; font-size: 13px; margin-bottom: 15px;">Cleared or archived entries from previous dates are safely stored here in file format.</p>
                     <div class="sheet-scroll-box">
                         <table>
                             <thead>
@@ -948,7 +932,7 @@ app.get('/admin', (req, res) => {
                         theadRow.innerHTML = '<th>SL</th><th>Date & Time</th><th>Username</th><th>Method & Phone</th><th>Amount</th><th>Status / Action</th>';
                         
                         if(allWithdrawals.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 25px;">No payment requests found.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 25px;">No payment requests found.</td></tr>';
                             return;
                         }
 
@@ -958,7 +942,7 @@ app.get('/admin', (req, res) => {
                                 : '<button class="received-btn" onclick="approveWithdraw(\\'' + w.id + '\\')">Approve / Pay</button>';
                             
                             let dateStr = new Date(w.date).toLocaleString();
-                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: var(--primary-neon);">@' + w.username + '</strong></td><td>' + w.method + ' - <strong>' + w.phone + '</strong></td><td style="color: var(--primary-neon); font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;">' + actionCol + '</td></tr>';
+                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + w.username + '</strong></td><td>' + w.method + ' - <strong>' + w.phone + '</strong></td><td style="color: #4ade80; font-weight: bold;">৳' + w.amount + '</td><td style="text-align: center;">' + actionCol + '</td></tr>';
                         });
 
                     } else if(activeAdminCategory === 'archives') {
@@ -969,7 +953,7 @@ app.get('/admin', (req, res) => {
                         let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
 
                         if(filtered.length === 0) {
-                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">No submissions found in this category.</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No submissions found in this category.</td></tr>';
                             return;
                         }
 
@@ -984,7 +968,7 @@ app.get('/admin', (req, res) => {
                             let rowDownloadBtn = '<button class="row-download-btn" onclick="downloadSingleRow(\\'' + s.username + '\\', \\'' + s.id + '\\')">📥</button>';
                             let dateStr = new Date(s.date).toLocaleString();
                             
-                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: var(--primary-neon);">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
+                            tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td><strong style="color: #38bdf8;">@' + s.username + '</strong></td><td><div style="display: flex; align-items: center; justify-content: space-between;"><div class="sheet-details">' + s.details + '</div>' + rowDownloadBtn + '</div></td><td style="text-align: center;">' + actionColumn + '</td></tr>';
                         });
                     }
                 }
@@ -993,12 +977,12 @@ app.get('/admin', (req, res) => {
                     let tbody = document.getElementById('admin-archive-table');
                     tbody.innerHTML = '';
                     if(archivedSubmissions.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">No archived records found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 25px;">No archived records found.</td></tr>';
                         return;
                     }
                     archivedSubmissions.forEach((arc, index) => {
                         let dateStr = new Date(arc.date).toLocaleString();
-                        tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td>' + arc.category + '</td><td><strong style="color: var(--primary-neon);">@' + arc.username + '</strong></td><td><div class="sheet-details">' + arc.details + '</div></td></tr>';
+                        tbody.innerHTML += '<tr><td style="text-align: center; font-weight: 600;">' + (index + 1) + '</td><td>' + dateStr + '</td><td>' + arc.category + '</td><td><strong style="color: #38bdf8;">@' + arc.username + '</strong></td><td><div class="sheet-details">' + arc.details + '</div></td></tr>';
                     });
                 }
 
@@ -1009,7 +993,7 @@ app.get('/admin', (req, res) => {
                     tbody.innerHTML = '';
 
                     if(uidsList.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 20px;">No saved UIDs in history.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8; padding: 20px;">No saved UIDs in history.</td></tr>';
                         return;
                     }
 
@@ -1017,7 +1001,7 @@ app.get('/admin', (req, res) => {
                         tbody.innerHTML += \`
                             <tr>
                                 <td style="text-align: center; font-weight: 600;">\${index + 1}</td>
-                                <td style="font-family: monospace; color: var(--primary-neon);">\${uid}</td>
+                                <td style="font-family: monospace; color: #38bdf8;">\${uid}</td>
                                 <td style="text-align: center;"><button class="delete-btn" onclick="deleteSavedUid('\${uid}')">Delete</button></td>
                             </tr>
                         \`;
