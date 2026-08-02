@@ -1,6 +1,7 @@
 {
   "name": "id-submission-panel",
   "version": "1.0.0",
+  "description": "Premium ID submission and payment portal",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
