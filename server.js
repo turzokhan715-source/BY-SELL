@@ -1,113 +1,74 @@
-require("dotenv").config();
-
-const express = require("express");
-const path = require("path");
-const fs = require("fs");
-const session = require("express-session");
-const bodyParser = require("body-parser");
-const cookieParser = require("cookie-parser");
-const { v4: uuidv4 } = require("uuid");
-
-const app = express();
-const PORT = process.env.PORT || 10000;
-
 // ==============================
-// Middlewares
+// Login API
 // ==============================
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
+app.post("/login", (req, res) => {
 
-app.use(
-    session({
-        secret: "premium_panel_secret_key",
-        resave: false,
-        saveUninitialized: false,
-        cookie: {
-            maxAge: 1000 * 60 * 60 * 24
-        }
-    })
-);
+    const { username, password } = req.body;
 
-// ==============================
-// Static Files
-// ==============================
+    const db = loadDB();
 
-app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+    const user = db.users.find(
+        u => u.username === username && u.password === password
+    );
 
-app.use(express.static(path.join(__dirname, "public")));
+    if (!user) {
 
-// ==============================
-// Database File
-// ==============================
+        return res.json({
+            success: false,
+            message: "Invalid Username or Password"
+        });
 
-const DB = path.join(__dirname, "data.json");
-
-function loadDB() {
-
-    if (!fs.existsSync(DB)) {
-
-        const data = {
-
-            users: [],
-            submissions: [],
-            withdrawals: [],
-            reports: [],
-            categories: [],
-            settings: {}
-
-        };
-
-        fs.writeFileSync(DB, JSON.stringify(data, null, 2));
     }
 
-    return JSON.parse(fs.readFileSync(DB));
+    req.session.user = {
+        id: user.id,
+        username: user.username,
+        role: user.role || "user"
+    };
 
-}
-
-function saveDB(data) {
-
-    fs.writeFileSync(DB, JSON.stringify(data, null, 2));
-
-}
-
-// ==============================
-// Routes
-// ==============================
-
-app.get("/", (req, res) => {
-
-    res.render("index");
+    res.json({
+        success: true
+    });
 
 });
 
-app.get("/dashboard", (req, res) => {
-
-    res.render("dashboard");
-
-});
-
-app.get("/admin", (req, res) => {
-
-    res.render("admin");
-
-});
-
-// এখানে পরে User API,
-// Admin API,
-// Payment API,
-// UID Checker,
-// Report System,
-// Balance System,
-// Login/Register
-// সব যোগ করা হবে।
-
+// ==============================
+// Register API
 // ==============================
 
-app.listen(PORT, () => {
+app.post("/register", (req, res) => {
 
-    console.log(`Server Running : http://localhost:${PORT}`);
+    const { username, password } = req.body;
+
+    const db = loadDB();
+
+    const exists = db.users.find(
+        u => u.username === username
+    );
+
+    if (exists) {
+
+        return res.json({
+            success: false,
+            message: "Username already exists"
+        });
+
+    }
+
+    db.users.push({
+        id: uuidv4(),
+        username,
+        password,
+        balance: 0,
+        role: "user",
+        createdAt: new Date().toISOString()
+    });
+
+    saveDB(db);
+
+    res.json({
+        success: true
+    });
 
 });
