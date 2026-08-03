@@ -1,0 +1,33 @@
+{
+  "users": [],
+  "submissions": [],
+  "withdrawals": [],
+  "reports": [],
+  "categories": [
+    {
+      "id": "instagram_2fa",
+      "name": "Instagram 2FA",
+      "icon": "📸",
+      "price": 0
+    },
+    {
+      "id": "facebook_cookie",
+      "name": "Facebook Cookie",
+      "icon": "📘",
+      "price": 0
+    },
+    {
+      "id": "hotmail_cookie",
+      "name": "Hotmail Cookie",
+      "icon": "📧",
+      "price": 0
+    }
+  ],
+  "claimed": [],
+  "notifications": [],
+  "settings": {
+    "siteName": "Premium Panel",
+    "currency": "BDT",
+    "maintenance": false
+  }
+}
