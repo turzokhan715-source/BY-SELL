@@ -1485,23 +1485,23 @@ app.post('/api/user/claim-all', (req, res) => {
     res.json({ success: true, message: `Successfully claimed ${unclaimedLiveUids.length} UIDs! Total ৳${totalReward} added to your balance.` });
 });
 
+// ==================== পেমেন্ট / উইথড্র রিকোয়েস্ট API ====================
 app.post('/api/withdraw', (req, res) => {
     const { username, method, phone, amount } = req.body;
     const data = loadData();
     let user = data.users.find(u => u.username.toLowerCase() === username.toLowerCase());
     
-    if(!user || user.balance < amount) {
+    if(!user || (user.balance || 0) < amount) {
         return res.json({ success: false, message: 'Insufficient balance!' });
     }
 
-    user.balance -= amount;
-
+    // উইথড্র রিকোয়েস্ট তৈরি (Status: pending)
     const withdrawal = {
         id: Date.now().toString(),
         username,
         method,
         phone,
-        amount,
+        amount: parseFloat(amount),
         status: 'pending',
         date: new Date().toISOString()
     };
@@ -1574,11 +1574,20 @@ app.post('/api/admin/update-submission', (req, res) => {
     res.json({ success: true });
 });
 
+// ==================== অ্যাডমিন অনুমোদন ও ব্যালেন্স কাটার API ====================
 app.post('/api/admin/approve-withdraw/:id', (req, res) => {
     const { id } = req.params;
     const data = loadData();
     let w = data.withdrawals.find(item => item.id === id);
-    if(w) {
+    
+    if(w && w.status !== 'success') {
+        let user = data.users.find(u => u.username.toLowerCase() === w.username.toLowerCase());
+        
+        // অ্যাডমিন অ্যাপ্রুভ করার সাথে সাথে ব্যালেন্স কাটা হবে এবং স্ট্যাটাস success করা হবে
+        if(user) {
+            user.balance = Math.max(0, (user.balance || 0) - w.amount);
+        }
+        
         w.status = 'success';
         saveData(data);
     }
