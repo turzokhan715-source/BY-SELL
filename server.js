@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.process?.env?.PORT || 10000;
+const PORT = process.env.PORT || 10000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -28,27 +28,21 @@ function loadData() {
             ]
         };
     }
-    try {
-        let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-        if (!data.users) data.users = [];
-        if (!data.submissions) data.submissions = [];
-        if (!data.withdrawals) data.withdrawals = [];
-        if (!data.adminReports) data.adminReports = {};
-        if (!data.categoryPrizes) data.categoryPrizes = {};
-        if (!data.claimedUids) data.claimedUids = {};
-        if (!data.archivedSubmissions) data.archivedSubmissions = [];
-        if (!data.categories) {
-            data.categories = [
-                { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
-                { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
-                { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
-                { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
-            ];
-        }
-        return data;
-    } catch (e) {
-        return { users: [], submissions: [], withdrawals: [], adminReports: {}, categoryPrizes: {}, claimedUids: {}, archivedSubmissions: [], categories: [] };
+    let data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    if (!data.withdrawals) data.withdrawals = [];
+    if (!data.adminReports) data.adminReports = {};
+    if (!data.categoryPrizes) data.categoryPrizes = {};
+    if (!data.claimedUids) data.claimedUids = {};
+    if (!data.archivedSubmissions) data.archivedSubmissions = [];
+    if (!data.categories) {
+        data.categories = [
+            { id: 'instagram_2fa', name: 'Instagram 2FA ID', icon: '📸', gradient: 'linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' },
+            { id: 'fb_page_cookies', name: 'Facebook Page Cookies', icon: '📄', gradient: 'linear-gradient(135deg, #1877f2 0%, #0d5bb9 100%)' },
+            { id: 'fb_cookies_id', name: 'Facebook Cookies ID', icon: '🍪', gradient: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)' },
+            { id: 'hotmail_cookies', name: 'Hotmail Page Cookie\'s ID', icon: '✉️', gradient: 'linear-gradient(135deg, #00a4ef 0%, #0072c6 100%)' }
+        ];
     }
+    return data;
 }
 
 function saveData(data) {
@@ -369,17 +363,13 @@ app.get('/', (req, res) => {
 
                 window.onload = function() {
                     loadCategoriesAndInit();
-                    try {
-                        const savedUser = localStorage.getItem('portal_current_user');
-                        if(savedUser && savedUser !== "undefined") {
-                            currentUser = JSON.parse(savedUser);
-                            document.getElementById('login-card').classList.add('hidden');
-                            document.getElementById('dashboard-card').classList.remove('hidden');
-                            updateUserUI();
-                            switchSidebarTab('home');
-                        }
-                    } catch(e) {
-                        localStorage.removeItem('portal_current_user');
+                    const savedUser = localStorage.getItem('portal_current_user');
+                    if(savedUser) {
+                        currentUser = JSON.parse(savedUser);
+                        document.getElementById('login-card').classList.add('hidden');
+                        document.getElementById('dashboard-card').classList.remove('hidden');
+                        updateUserUI();
+                        switchSidebarTab('home');
                     }
                 };
 
@@ -392,7 +382,7 @@ app.get('/', (req, res) => {
                             renderUserCategoryGrids();
                             if(callback) callback();
                         }
-                    }).catch(err => console.error(err));
+                    });
                 }
 
                 function renderUserCategoryGrids() {
@@ -453,10 +443,9 @@ app.get('/', (req, res) => {
                             alert('Account created successfully! Please login.');
                             showLogin();
                         } else {
-                            alert(data.message || 'Registration failed!');
+                            alert(data.message);
                         }
-                    })
-                    .catch(() => alert('Network error. Try again!'));
+                    });
                 }
 
                 function loginUser() {
@@ -480,22 +469,19 @@ app.get('/', (req, res) => {
                             document.getElementById('dashboard-card').classList.remove('hidden');
                             switchSidebarTab('home');
                         } else {
-                            alert(data.message || 'Login failed!');
+                            alert(data.message);
                         }
-                    })
-                    .catch(() => alert('Network error. Try again!'));
+                    });
                 }
 
                 function updateUserUI() {
-                    if (!currentUser) return;
-                    document.getElementById('user-display-name').innerText = (currentUser.firstName || '') + ' ' + (currentUser.lastName || '');
-                    document.getElementById('sidebar-user-name').innerText = (currentUser.firstName || '') + ' ' + (currentUser.lastName || '');
-                    document.getElementById('sidebar-user-tg').innerText = '@' + (currentUser.username || '');
+                    document.getElementById('user-display-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
+                    document.getElementById('sidebar-user-name').innerText = currentUser.firstName + ' ' + currentUser.lastName;
+                    document.getElementById('sidebar-user-tg').innerText = '@' + currentUser.username;
                     document.getElementById('user-balance-display').innerText = '৳' + Number(currentUser.balance || 0).toFixed(2);
                 }
 
                 function refreshUserData() {
-                    if (!currentUser || !currentUser.username) return;
                     fetch('/api/user/refresh/' + currentUser.username)
                     .then(res => res.json())
                     .then(data => {
@@ -564,7 +550,7 @@ app.get('/', (req, res) => {
                     const text = document.getElementById('checker-input-uids').value.trim();
                     if(!text) return alert('Please enter UIDs to check!');
 
-                    const userUids = text.split('\n').map(u => u.trim()).filter(u => u.length > 0);
+                    const userUids = text.split('\\n').map(u => u.trim()).filter(u => u.length > 0);
 
                     fetch('/api/user/check-uids', {
                         method: 'POST',
@@ -1170,7 +1156,7 @@ app.get('/admin', (req, res) => {
                 function saveAdminReportAndPrize() {
                     const text = document.getElementById('admin-report-textarea').value.trim();
                     const prize = parseFloat(document.getElementById('admin-category-prize').value) || 0;
-                    const newUids = text ? text.split('\n').map(u => u.trim()).filter(u => u.length > 0) : [];
+                    const newUids = text ? text.split('\\n').map(u => u.trim()).filter(u => u.length > 0) : [];
 
                     fetch('/api/admin/save-report', {
                         method: 'POST',
@@ -1242,7 +1228,7 @@ app.get('/admin', (req, res) => {
                     let sub = allSubmissions.find(s => s.id === id);
                     if(!sub) return alert('Data not found!');
 
-                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\r\n";
+                    let csvContent = "data:text/csv;charset=utf-8,Date,Telegram Username,Category,Details,Status\\r\\n";
                     let row = [
                         '"' + new Date(sub.date).toLocaleString() + '"',
                         '"@' + sub.username + '"',
@@ -1250,7 +1236,7 @@ app.get('/admin', (req, res) => {
                         '"' + sub.details.replace(/"/g, '""') + '"',
                         '"' + sub.status.toUpperCase() + '"'
                     ];
-                    csvContent += row.join(",") + "\r\n";
+                    csvContent += row.join(",") + "\\r\\n";
 
                     let encodedUri = encodeURI(csvContent);
                     let link = document.createElement("a");
@@ -1266,7 +1252,7 @@ app.get('/admin', (req, res) => {
                     let filtered = allSubmissions.filter(s => s.category === activeAdminCategory);
                     if(filtered.length === 0) return alert('No data available to download in this category!');
                     
-                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\r\n";
+                    let csvContent = "data:text/csv;charset=utf-8,SL,Date,Telegram Username,Details,Status\\r\\n";
                     filtered.forEach((s, index) => {
                         let row = [
                             index + 1,
@@ -1275,7 +1261,7 @@ app.get('/admin', (req, res) => {
                             '"' + s.details.replace(/"/g, '""') + '"',
                             '"' + s.status.toUpperCase() + '"'
                         ];
-                        csvContent += row.join(",") + "\r\n";
+                        csvContent += row.join(",") + "\\r\\n";
                     });
 
                     let encodedUri = encodeURI(csvContent);
@@ -1309,7 +1295,7 @@ app.get('/admin', (req, res) => {
 // ==================== API ENDPOINTS ====================
 app.get('/api/categories', (req, res) => {
     const data = loadData();
-    res.json({ success: true, categories: data.categories || [] });
+    res.json({ success: true, categories: data.categories });
 });
 
 app.post('/api/admin/add-category', (req, res) => {
@@ -1329,7 +1315,6 @@ app.post('/api/admin/add-category', (req, res) => {
 
     const newCat = { id, name, icon: icon || '📁', gradient: randomGradient };
     
-    if(!data.categories) data.categories = [];
     data.categories.push(newCat);
     saveData(data);
     res.json({ success: true, categories: data.categories });
@@ -1339,31 +1324,21 @@ app.post('/api/admin/delete-category', (req, res) => {
     const { id } = req.body;
     const data = loadData();
     
-    if(data.categories) {
-        data.categories = data.categories.filter(c => c.id !== id);
-        saveData(data);
-    }
-    res.json({ success: true, categories: data.categories || [] });
+    data.categories = data.categories.filter(c => c.id !== id);
+    saveData(data);
+    res.json({ success: true, categories: data.categories });
 });
 
 app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
     
-    if (!username || !email || !password) {
-        return res.json({ success: false, message: 'Invalid data submitted!' });
-    }
-
-    const cleanUsername = username.replace(/^@/, '').trim();
-    const cleanEmail = email.trim().toLowerCase();
-
-    let existingUser = data.users.find(u => u.email.toLowerCase() === cleanEmail || u.username.toLowerCase() === cleanUsername.toLowerCase());
+    let existingUser = data.users.find(u => u.email === email || u.username === username);
     if(existingUser) {
         return res.json({ success: false, message: 'Email or Username already exists!' });
     }
 
-    const newUser = { firstName, lastName, username: cleanUsername, email: cleanEmail, password, balance: 0 };
-    data.users.push(newUser);
+    data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password, balance: 0 });
     saveData(data);
     res.json({ success: true });
 });
@@ -1372,12 +1347,7 @@ app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const data = loadData();
     
-    if (!email || !password) {
-        return res.json({ success: false, message: 'Email and password required!' });
-    }
-
-    const cleanEmail = email.trim().toLowerCase();
-    let user = data.users.find(u => u.email.toLowerCase() === cleanEmail && u.password === password);
+    let user = data.users.find(u => u.email === email && u.password === password);
     if(!user) {
         return res.json({ success: false, message: 'Invalid email or password!' });
     }
@@ -1552,8 +1522,8 @@ app.get('/api/admin/data', (req, res) => {
     const data = loadData();
     res.json({ 
         success: true, 
-        submissions: data.submissions || [], 
-        withdrawals: data.withdrawals || [],
+        submissions: data.submissions, 
+        withdrawals: data.withdrawals,
         adminReports: data.adminReports || {},
         categoryPrizes: data.categoryPrizes || {},
         archivedSubmissions: data.archivedSubmissions || [],
