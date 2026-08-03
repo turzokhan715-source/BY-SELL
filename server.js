@@ -1333,10 +1333,9 @@ app.post('/api/register', (req, res) => {
     const { firstName, lastName, username, email, password } = req.body;
     const data = loadData();
     
-    // Check unique email or username
-    let existingUser = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() || u.username.toLowerCase() === username.replace(/^@/, '').toLowerCase());
+    let existingUser = data.users.find(u => u.email === email || u.username === username);
     if(existingUser) {
-        return res.json({ success: false, message: 'This email or username is already registered!' });
+        return res.json({ success: false, message: 'Email or Username already exists!' });
     }
 
     data.users.push({ firstName, lastName, username: username.replace(/^@/, ''), email, password, balance: 0 });
@@ -1348,7 +1347,7 @@ app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const data = loadData();
     
-    let user = data.users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+    let user = data.users.find(u => u.email === email && u.password === password);
     if(!user) {
         return res.json({ success: false, message: 'Invalid email or password!' });
     }
@@ -1515,7 +1514,6 @@ app.post('/api/withdraw', (req, res) => {
 app.get('/api/user/withdrawals/:username', (req, res) => {
     const { username } = req.params;
     const data = loadData();
-    // কেস-সেন্সিটিভিটি সমস্যা দূর করতে toLowerCase() দিয়ে ফিল্টার করা হয়েছে যাতে ইউজারের হিস্ট্রি সঠিকভাবে শো করে
     const userWithdraws = data.withdrawals.filter(w => w.username.toLowerCase() === username.toLowerCase());
     res.json({ success: true, withdrawals: userWithdraws });
 });
